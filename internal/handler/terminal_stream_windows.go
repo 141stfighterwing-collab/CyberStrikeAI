@@ -10,7 +10,7 @@ import (
 	"sync"
 )
 
-// runCommandStreamImpl 在 Windows 下用 stdout/stderr 管道执行
+// RunCommandStreamImpl is executed using stdout/stderr pipes under Windows
 func runCommandStreamImpl(cmd *exec.Cmd, sendEvent func(streamEvent), ctx context.Context) {
 	stdoutPipe, err := cmd.StdoutPipe()
 	if err != nil {

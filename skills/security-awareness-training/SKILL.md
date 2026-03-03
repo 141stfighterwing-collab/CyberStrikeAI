@@ -1,285 +1,285 @@
 ---
 name: security-awareness-training
-description: 安全意识培训的专业技能和方法论
+Description: Professional skills and methodologies for security awareness training
 version: 1.0.0
 ---
 
-# 安全意识培训
-
-## 概述
-
-安全意识培训是提高组织整体安全水平的重要措施。本技能提供安全意识培训的方法、内容和最佳实践。
-
-## 培训目标
-
-### 1. 知识提升
-
-**目标：**
-- 了解安全威胁
-- 识别安全风险
-- 掌握防护措施
-- 理解安全政策
-
-### 2. 行为改变
-
-**目标：**
-- 养成安全习惯
-- 遵守安全规范
-- 主动报告事件
-- 参与安全活动
-
-### 3. 文化建立
-
-**目标：**
-- 建立安全文化
-- 提高安全意识
-- 促进安全协作
-- 持续改进
-
-## 培训内容
-
-### 1. 基础安全
-
-**内容：**
-- 密码安全
-- 账户安全
-- 设备安全
-- 网络安全
-
-**密码安全：**
-- 使用强密码
-- 密码不重用
-- 启用多因素认证
-- 定期更换密码
-
-**账户安全：**
-- 保护账户信息
-- 不共享账户
-- 及时注销账户
-- 监控账户活动
-
-### 2. 邮件安全
-
-**内容：**
-- 识别钓鱼邮件
-- 处理可疑邮件
-- 附件安全
-- 链接安全
-
-**钓鱼邮件识别：**
-- 检查发件人
-- 检查链接
-- 检查附件
-- 检查内容
-
-**处理可疑邮件：**
-- 不点击链接
-- 不打开附件
-- 报告安全团队
-- 删除邮件
-
-### 3. 社交工程
-
-**内容：**
-- 识别社交工程
-- 防范社交工程
-- 报告可疑行为
-
-**常见手段：**
-- 假冒身份
-- 紧急情况
-- 权威要求
-- 利益诱惑
-
-**防范措施：**
-- 验证身份
-- 不轻信
-- 报告可疑
-- 遵守流程
-
-### 4. 数据安全
-
-**内容：**
-- 数据分类
-- 数据保护
-- 数据共享
-- 数据销毁
-
-**数据保护：**
-- 加密敏感数据
-- 安全存储
-- 安全传输
-- 访问控制
-
-**数据共享：**
-- 最小化共享
-- 使用安全渠道
-- 验证接收方
-- 记录共享
-
-### 5. 物理安全
-
-**内容：**
-- 设备安全
-- 办公环境
-- 访客管理
-- 应急响应
-
-**设备安全：**
-- 锁定屏幕
-- 保护设备
-- 安全存储
-- 及时报告丢失
-
-## 培训方法
-
-### 1. 在线培训
-
-**优势：**
-- 灵活方便
-- 可重复学习
-- 成本较低
-- 易于跟踪
-
-**实施：**
-- 使用LMS平台
-- 制作培训内容
-- 设置学习路径
-- 跟踪学习进度
-
-### 2. 面对面培训
-
-**优势：**
-- 互动性强
-- 即时反馈
-- 深度讨论
-- 建立关系
-
-**实施：**
-- 定期培训
-- 分组讨论
-- 案例分析
-- 实践演练
-
-### 3. 模拟演练
-
-**优势：**
-- 真实场景
-- 实践操作
-- 检验效果
-- 提高能力
-
-**实施：**
-- 钓鱼邮件演练
-- 社交工程演练
-- 应急响应演练
-- 安全事件演练
-
-## 培训计划
-
-### 新员工培训
-
-**内容：**
-- 安全政策
-- 基础安全知识
-- 工具使用
-- 报告流程
-
-**时间：**
-- 入职时
-- 第一周
-- 持续跟进
-
-### 定期培训
-
-**内容：**
-- 最新威胁
-- 安全更新
-- 案例分析
-- 最佳实践
-
-**频率：**
-- 季度培训
-- 年度培训
-- 专项培训
-
-### 专项培训
-
-**内容：**
-- 特定角色培训
-- 深度培训
-- 认证培训
-
-**对象：**
-- 管理员
-- 开发人员
-- 安全人员
-- 管理层
-
-## 评估方法
-
-### 1. 知识测试
-
-**方法：**
-- 在线测试
-- 问卷调查
-- 技能评估
-
-**指标：**
-- 测试分数
-- 通过率
-- 改进情况
-
-### 2. 行为观察
-
-**方法：**
-- 模拟演练
-- 实际观察
-- 事件分析
-
-**指标：**
-- 演练结果
-- 事件数量
-- 报告数量
-
-### 3. 反馈收集
-
-**方法：**
-- 培训反馈
-- 满意度调查
-- 建议收集
-
-**指标：**
-- 满意度
-- 改进建议
-- 培训效果
-
-## 最佳实践
-
-### 1. 内容设计
-
-- 针对性强
-- 实用易懂
-- 案例丰富
-- 持续更新
-
-### 2. 实施策略
-
-- 定期培训
-- 多种形式
-- 互动参与
-- 跟踪效果
-
-### 3. 文化建设
-
-- 领导支持
-- 全员参与
-- 持续改进
-- 奖励机制
-
-## 注意事项
-
-- 内容要实用
-- 形式要多样
-- 跟踪要持续
-- 改进要及时
+#security awareness training
+
+## Overview
+
+Security awareness training is an important measure to improve the overall security level of an organization. This skill provides methods, content, and best practices for security awareness training.
+
+## Training objectives
+
+### 1. Knowledge improvement
+
+**Target:**
+- Understand security threats
+- Identify security risks
+- Understand protective measures
+- Understand security policies
+
+### 2. Behavioral changes
+
+**Target:**
+- Develop safe habits
+- Follow safety regulations
+- Proactively report incidents
+- Participate in safety activities
+
+### 3. Culture establishment
+
+**Target:**
+- Establish a safety culture
+- Improve security awareness
+- Promote secure collaboration
+- Continuous improvement
+
+## Training content
+
+### 1. Basic security
+
+**content:**
+- Password security
+- Account security
+-Device security
+- Cybersecurity
+
+**Password Security:**
+- Use strong passwords
+- Passwords are not reused
+- Enable multi-factor authentication
+- Change your password regularly
+
+**Account Security:**
+- Protect account information
+- No shared accounts
+- Cancel the account promptly
+- Monitor account activity
+
+### 2. Email Security
+
+**content:**
+- Identify phishing emails
+- Handle suspicious emails
+- Attachment security
+- Link security
+
+**Phishing Email Identification:**
+- Check sender
+- Check the link
+- Check attachments
+- Check content
+
+**Handling suspicious emails:**
+- Don't click on links
+- Do not open attachments
+- Report to security team
+- Delete messages
+
+### 3. Social Engineering
+
+**content:**
+- Identify social engineering
+- Guard against social engineering
+- Report suspicious behavior
+
+**Common means:**
+- Fake identity
+- emergencies
+- Authoritative requirements
+- Temptation of profit
+
+**Precautions:**
+- Verify identity
+- Do not be gullible
+- Report suspicious
+- Follow the process
+
+### 4. Data Security
+
+**content:**
+- Data classification
+- Data protection
+- Data sharing
+- Data destruction
+
+**Data Protection:**
+- Encrypt sensitive data
+- Safe storage
+- Secure transmission
+- Access control
+
+**Data Sharing:**
+- Minimize sharing
+- Use secure channels
+- Verify recipient
+- Record sharing
+
+### 5. Physical Security
+
+**content:**
+-Device security
+- Office environment
+- Visitor management
+- emergency response
+
+**Device Security:**
+- lock screen
+- Protective equipment
+- Safe storage
+- Report loss promptly
+
+## Training method
+
+### 1. Online training
+
+**Advantages:**
+- Flexible and convenient
+- Repeatable learning
+- lower cost
+- Easy to track
+
+**Implementation:**
+- Use LMS platform
+- Create training content
+- Set learning path
+- Track learning progress
+
+### 2. Face-to-face training
+
+**Advantages:**
+- Highly interactive
+- Instant feedback
+- In-depth discussion
+- Build relationships
+
+**Implementation:**
+- Regular training
+- Group discussion
+- Case analysis
+- Practical drills
+
+### 3. Simulation exercise
+
+**Advantages:**
+-Real scenes
+- Practical operations
+- Check the effect
+- Improve abilities
+
+**Implementation:**
+- Phishing email walkthrough
+- Social engineering drills
+- Emergency response drills
+- Security incident drills
+
+## Training Plan
+
+### New employee training
+
+**content:**
+- Security policy
+- Basic safety knowledge
+- Tool usage
+- Reporting process
+
+**time:**
+- When joining the company
+- first week
+- Continuous follow-up
+
+### Regular training
+
+**content:**
+- Latest threats
+- Security updates
+- Case analysis
+- Best practices
+
+**frequency:**
+- Quarterly training
+- Annual training
+-Special training
+
+### Special training
+
+**content:**
+- Role-specific training
+- In-depth training
+- Certification training
+
+**Object:**
+- Administrator
+- Developer
+- Security personnel
+- Management
+
+## Evaluation method
+
+### 1. Knowledge test
+
+**method:**
+- Online test
+- Questionnaire
+- Skills assessment
+
+**index:**
+- test scores
+- Pass rate
+- Improvements
+
+### 2. Behavioral Observation
+
+**method:**
+- Simulation drills
+- Practical observations
+- Event analysis
+
+**index:**
+- Exercise results
+- Number of events
+- Report quantity
+
+### 3. Feedback collection
+
+**method:**
+- Training feedback
+- Satisfaction survey
+- Suggested collection
+
+**index:**
+- Satisfaction
+- Suggestions for improvements
+- Training effect
+
+## Best Practices
+
+### 1. Content design
+
+- Highly targeted
+- Practical and easy to understand
+- Rich cases
+- Continuous updates
+
+### 2. Implement strategy
+
+- Regular training
+- Various forms
+- Interactive participation
+- Track performance
+
+### 3. Cultural construction
+
+- Leadership support
+- Participation of all members
+- Continuous improvement
+- Reward mechanism
+
+## Notes
+
+- Content should be practical
+- There should be various forms
+- Tracking should be continued
+- Improvements must be made in a timely manner

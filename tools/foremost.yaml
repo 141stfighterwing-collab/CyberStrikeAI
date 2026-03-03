@@ -1,52 +1,52 @@
 name: "foremost"
 command: "foremost"
 enabled: true
-short_description: "文件恢复工具"
+short_description: "File recovery tool"
 description: |
-  Foremost是一个基于文件头和尾的文件恢复工具。
+Foremost is a file recovery tool based on file headers and trailers.
 
-  **主要功能：**
-  - 文件恢复
-  - 多种文件类型支持
-  - 磁盘镜像分析
-  - 数据恢复
+**Main functions:**
+- File recovery
+- Multiple file types supported
+- Disk image analysis
+- Data recovery
 
-  **使用场景：**
-  - 数据恢复
-  - 取证分析
-  - 文件提取
-  - 磁盘分析
+**Usage scenario:**
+- Data recovery
+- Forensic analysis
+- File extraction
+- Disk analysis
 parameters:
   - name: "input_file"
     type: "string"
-    description: "输入文件或设备"
+    description: "Input file or device"
     required: true
     flag: "-i"
     format: "flag"
   - name: "output_dir"
     type: "string"
-    description: "输出目录"
+    description: "Output directory"
     required: false
     flag: "-o"
     format: "flag"
     default: "/tmp/foremost_output"
   - name: "file_types"
     type: "string"
-    description: "要恢复的文件类型（jpg,gif,png等）"
+    description: "File type to be recovered (jpg, gif, png, etc.)"
     required: false
     flag: "-t"
     format: "flag"
   - name: "additional_args"
     type: "string"
     description: |
-      额外的foremost参数。用于传递未在参数列表中定义的foremost选项。
+Additional first parameter. Used to pass the most options that are not defined in the parameter list.
 
-      **示例值：**
-      - 根据工具特性添加常用参数示例
+**Example value:**
+- Add common parameter examples based on tool features
 
-      **注意事项：**
-      - 多个参数用空格分隔
-      - 确保参数格式正确，避免命令注入
-      - 此参数会直接追加到命令末尾
+**Note:**
+- Multiple parameters separated by spaces
+- Ensure the parameter format is correct to avoid command injection
+- This parameter will be appended directly to the end of the command
     required: false
     format: "positional"

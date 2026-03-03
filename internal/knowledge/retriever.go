@@ -12,7 +12,7 @@ import (
 	"go.uber.org/zap"
 )
 
-// Retriever 检索器
+// Retriever retriever
 type Retriever struct {
 	db       *sql.DB
 	embedder *Embedder
@@ -20,14 +20,14 @@ type Retriever struct {
 	logger   *zap.Logger
 }
 
-// RetrievalConfig 检索配置
+// RetrievalConfig Retrieve configuration
 type RetrievalConfig struct {
 	TopK                int
 	SimilarityThreshold float64
 	HybridWeight        float64
 }
 
-// NewRetriever 创建新的检索器
+// NewRetriever creates a new retriever
 func NewRetriever(db *sql.DB, embedder *Embedder, config *RetrievalConfig, logger *zap.Logger) *Retriever {
 	return &Retriever{
 		db:       db,
@@ -37,11 +37,11 @@ func NewRetriever(db *sql.DB, embedder *Embedder, config *RetrievalConfig, logge
 	}
 }
 
-// UpdateConfig 更新检索配置
+// UpdateConfig Update retrieval configuration
 func (r *Retriever) UpdateConfig(config *RetrievalConfig) {
 	if config != nil {
 		r.config = config
-		r.logger.Info("检索器配置已更新",
+		r.logger.Info("Retriever configuration updated",
 			zap.Int("top_k", config.TopK),
 			zap.Float64("similarity_threshold", config.SimilarityThreshold),
 			zap.Float64("hybrid_weight", config.HybridWeight),
@@ -49,7 +49,7 @@ func (r *Retriever) UpdateConfig(config *RetrievalConfig) {
 	}
 }
 
-// cosineSimilarity 计算余弦相似度
+// CosineSimilarity calculates cosine similarity
 func cosineSimilarity(a, b []float32) float64 {
 	if len(a) != len(b) {
 		return 0.0
@@ -69,8 +69,8 @@ func cosineSimilarity(a, b []float32) float64 {
 	return dotProduct / (math.Sqrt(normA) * math.Sqrt(normB))
 }
 
-// bm25Score 计算BM25分数（改进版，更接近标准BM25）
-// 注意：这是单文档版本的BM25，缺少全局IDF，但比之前的简化版本更准确
+// Bm25Score calculates BM25 score (improved version, closer to standard BM25)
+// NOTE: This is a single-document version of BM25, missing the global IDF, but more accurate than the previous simplified version
 func (r *Retriever) bm25Score(query, text string) float64 {
 	queryTerms := strings.Fields(strings.ToLower(query))
 	if len(queryTerms) == 0 {
@@ -83,15 +83,15 @@ func (r *Retriever) bm25Score(query, text string) float64 {
 		return 0.0
 	}
 
-	// BM25参数
-	k1 := 1.5             // 词频饱和度参数
-	b := 0.75             // 长度归一化参数
-	avgDocLength := 100.0 // 估算的平均文档长度（用于归一化）
+	// BM25 parameters
+	k1 := 1.5             // Word frequency saturation parameter
+	b := 0.75             // Length normalization parameter
+	avgDocLength := 100.0 // Estimated average document length (used for normalization)
 	docLength := float64(len(textTerms))
 
 	score := 0.0
 	for _, term := range queryTerms {
-		// 计算词频（TF）
+		// Calculate word frequency (TF)
 		termFreq := 0
 		for _, textTerm := range textTerms {
 			if textTerm == term {
@@ -100,17 +100,17 @@ func (r *Retriever) bm25Score(query, text string) float64 {
 		}
 
 		if termFreq > 0 {
-			// BM25公式的核心部分
-			// TF部分：termFreq / (termFreq + k1 * (1 - b + b * (docLength / avgDocLength)))
+			// The core part of the BM25 formula
+			// TF part: termFreq / (termFreq + k1 * (1 - b + b * (docLength / avgDocLength)))
 			tf := float64(termFreq)
 			lengthNorm := 1 - b + b*(docLength/avgDocLength)
 			tfScore := tf / (tf + k1*lengthNorm)
 
-			// 简化IDF：使用词长度作为权重（短词通常更重要）
-			// 实际BM25需要全局文档统计，这里用简化版本
+			// Simplify IDF: use word length as weight (shorter words are usually more important)
+			// Actual BM25 requires global document statistics, and a simplified version is used here.
 			idfWeight := 1.0
 			if len(term) > 2 {
-				// 长词稍微降低权重（但实际BM25中，罕见词IDF更高）
+				// Long words slightly reduce the weight (but in actual BM25, the IDF of rare words is higher)
 				idfWeight = 1.0 + math.Log(1.0+float64(len(term))/10.0)
 			}
 
@@ -118,7 +118,7 @@ func (r *Retriever) bm25Score(query, text string) float64 {
 		}
 	}
 
-	// 归一化到0-1范围
+	// Normalized to the 0-1 range
 	if len(queryTerms) > 0 {
 		score = score / float64(len(queryTerms))
 	}
@@ -126,10 +126,10 @@ func (r *Retriever) bm25Score(query, text string) float64 {
 	return math.Min(score, 1.0)
 }
 
-// Search 搜索知识库
+// Search Search knowledge base
 func (r *Retriever) Search(ctx context.Context, req *SearchRequest) ([]*RetrievalResult, error) {
 	if req.Query == "" {
-		return nil, fmt.Errorf("查询不能为空")
+		return nil, fmt.Errorf("Query cannot be empty")
 	}
 
 	topK := req.TopK
@@ -148,27 +148,27 @@ func (r *Retriever) Search(ctx context.Context, req *SearchRequest) ([]*Retrieva
 		threshold = 0.7
 	}
 
-	// 向量化查询（如果提供了risk_type，也包含在查询文本中，以便更好地匹配）
+	// Vectorized query (if risk_type is provided, also included in query text for better matching)
 	queryText := req.Query
 	if req.RiskType != "" {
-		// 将risk_type信息包含到查询中，格式与索引时保持一致
-		queryText = fmt.Sprintf("[风险类型: %s] %s", req.RiskType, req.Query)
+		// Include risk_type information into the query, keeping the format consistent with indexing
+		queryText = fmt.Sprintf("[Risk Type: %s] %s", req.RiskType, req.Query)
 	}
 	queryEmbedding, err := r.embedder.EmbedText(ctx, queryText)
 	if err != nil {
-		return nil, fmt.Errorf("向量化查询失败: %w", err)
+		return nil, fmt.Errorf("Vectorized query failed: %w", err)
 	}
 
-	// 查询所有向量（或按风险类型过滤）
-	// 使用精确匹配（=）以提高性能和准确性
-	// 由于系统提供了内置工具来获取风险类型列表，用户应该使用准确的category名称
-		// 同时，向量嵌入中已包含category信息，即使SQL过滤不完全匹配，向量相似度也能帮助匹配
+	// Query all vectors (or filter by risk type)
+	// Use exact matching (=) to improve performance and accuracy
+	// Since the system provides built-in tools to obtain a list of risk types, users should use the exact category name
+		// At the same time, vector embedding already contains category information. Even if SQL filtering does not match exactly, vector similarity can help match.
 		var rows *sql.Rows
 		if req.RiskType != "" {
-			// 使用精确匹配（=），性能更好且更准确
-			// 使用 COLLATE NOCASE 实现大小写不敏感匹配，提高容错性
-			// 注意：如果用户输入的risk_type与category不完全一致，可能匹配不到
-			// 建议用户先调用相应的内置工具获取准确的category名称
+			// Use exact matching (=) for better performance and more accuracy
+			// Use COLLATE NOCASE to achieve case-insensitive matching and improve fault tolerance
+			// Note: If the risk_type entered by the user is not exactly the same as category, there may be no match.
+			// It is recommended that users first call the corresponding built-in tool to obtain the accurate category name.
 		rows, err = r.db.Query(`
 			SELECT e.id, e.item_id, e.chunk_index, e.chunk_text, e.embedding, i.category, i.title
 			FROM knowledge_embeddings e
@@ -183,18 +183,18 @@ func (r *Retriever) Search(ctx context.Context, req *SearchRequest) ([]*Retrieva
 		`)
 	}
 	if err != nil {
-		return nil, fmt.Errorf("查询向量失败: %w", err)
+		return nil, fmt.Errorf("Query vector failed: %w", err)
 	}
 	defer rows.Close()
 
-	// 计算相似度
+	// Calculate similarity
 	type candidate struct {
 		chunk                 *KnowledgeChunk
 		item                  *KnowledgeItem
 		similarity            float64
 		bm25Score             float64
 		hasStrongKeywordMatch bool
-		hybridScore           float64 // 混合分数，用于最终排序
+		hybridScore           float64 // Mixed score, used for final ranking
 	}
 
 	candidates := make([]candidate, 0)
@@ -204,34 +204,34 @@ func (r *Retriever) Search(ctx context.Context, req *SearchRequest) ([]*Retrieva
 		var chunkIndex int
 
 		if err := rows.Scan(&chunkID, &itemID, &chunkIndex, &chunkText, &embeddingJSON, &category, &title); err != nil {
-			r.logger.Warn("扫描向量失败", zap.Error(err))
+			r.logger.Warn("Scan vector failed", zap.Error(err))
 			continue
 		}
 
-		// 解析向量
+		// Parse vector
 		var embedding []float32
 		if err := json.Unmarshal([]byte(embeddingJSON), &embedding); err != nil {
-			r.logger.Warn("解析向量失败", zap.Error(err))
+			r.logger.Warn("Failed to parse vector", zap.Error(err))
 			continue
 		}
 
-		// 计算余弦相似度
+		// Calculate cosine similarity
 		similarity := cosineSimilarity(queryEmbedding, embedding)
 
-		// 计算BM25分数（考虑chunk文本、category和title）
-		// category和title是结构化字段，完全匹配时应该被优先考虑
+		// Calculate BM25 score (considering chunk text, category and title)
+		// Category and title are structured fields and should be given priority when matching exactly.
 		chunkBM25 := r.bm25Score(req.Query, chunkText)
 		categoryBM25 := r.bm25Score(req.Query, category)
 		titleBM25 := r.bm25Score(req.Query, title)
 
-		// 检查category或title是否有显著匹配（这对于结构化字段很重要）
+		// Check if category or title has a significant match (this is important for structured fields)
 		hasStrongKeywordMatch := categoryBM25 > 0.3 || titleBM25 > 0.3
 
-		// 综合BM25分数（用于后续排序）
+		// Comprehensive BM25 score (used for subsequent ranking)
 		bm25Score := math.Max(math.Max(chunkBM25, categoryBM25), titleBM25)
 
-		// 收集所有候选（先不严格过滤，以便后续智能处理跨语言情况）
-		// 只过滤掉相似度极低的结果（< 0.1），避免噪音
+		// Collect all candidates (not strict filtering at first, so that cross-language situations can be handled intelligently later)
+		// Only filter out results with extremely low similarity (< 0.1) to avoid noise
 		if similarity < 0.1 {
 			continue
 		}
@@ -259,15 +259,15 @@ func (r *Retriever) Search(ctx context.Context, req *SearchRequest) ([]*Retrieva
 		})
 	}
 
-	// 先按相似度排序（使用更高效的排序）
+	// Sort by similarity first (use more efficient sorting)
 	sort.Slice(candidates, func(i, j int) bool {
 		return candidates[i].similarity > candidates[j].similarity
 	})
 
-	// 智能过滤策略：优先保留关键词匹配的结果，对跨语言查询使用更宽松的阈值
+	// Intelligent filtering strategy: Prioritize keyword matching results and use looser thresholds for cross-language queries
 	filteredCandidates := make([]candidate, 0)
 
-	// 检查是否有任何关键词匹配（用于判断是否是跨语言查询）
+	// Check if there are any keyword matches (used to determine whether it is a cross-language query)
 	hasAnyKeywordMatch := false
 	for _, cand := range candidates {
 		if cand.hasStrongKeywordMatch {
@@ -276,60 +276,60 @@ func (r *Retriever) Search(ctx context.Context, req *SearchRequest) ([]*Retrieva
 		}
 	}
 
-	// 检查最高相似度，用于判断是否确实有相关内容
+	// Check the highest similarity to determine whether there is indeed relevant content
 	maxSimilarity := 0.0
 	if len(candidates) > 0 {
 		maxSimilarity = candidates[0].similarity
 	}
 
-	// 应用智能过滤
-	// 如果用户设置了高阈值（>=0.8），更严格地遵守阈值，减少自动放宽
+	// Apply smart filtering
+	// If the user sets a high threshold (>=0.8), adhere to the threshold more strictly and reduce automatic relaxation
 	strictMode := threshold >= 0.8
 
-	// 根据是否有关键词匹配，采用不同的阈值策略
-	// 严格模式下，禁用跨语言放宽策略，严格遵守用户设置的阈值
+	// Depending on whether there is a keyword match, different threshold strategies are used
+	// In strict mode, the cross-language relaxation policy is disabled and the threshold set by the user is strictly adhered to.
 	effectiveThreshold := threshold
 	if !strictMode && !hasAnyKeywordMatch {
-		// 非严格模式下，没有关键词匹配，可能是跨语言查询，适度放宽阈值
-		// 但即使跨语言，也不能无脑降低阈值，需要保证最低相关性
-		// 跨语言阈值设为0.6，确保返回的结果至少有一定相关性
+		// In non-strict mode, there is no keyword matching, it may be a cross-language query, and the threshold is moderately relaxed.
+		// But even across languages, the threshold cannot be lowered without thinking, and the minimum correlation needs to be ensured.
+		// The cross-language threshold is set to 0.6 to ensure that the returned results are at least somewhat relevant.
 		effectiveThreshold = math.Max(threshold*0.85, 0.6)
-		r.logger.Debug("检测到可能的跨语言查询，使用放宽的阈值",
+		r.logger.Debug("Possible cross-language query detected, using relaxed threshold",
 			zap.Float64("originalThreshold", threshold),
 			zap.Float64("effectiveThreshold", effectiveThreshold),
 		)
 	} else if strictMode {
-		// 严格模式下，即使没有关键词匹配，也严格遵守阈值
-		r.logger.Debug("严格模式：严格遵守用户设置的阈值",
+		// In strict mode, the threshold is strictly adhered to even if there is no keyword match.
+		r.logger.Debug("Strict mode: Strictly adhere to user-set thresholds",
 			zap.Float64("threshold", threshold),
 			zap.Bool("hasKeywordMatch", hasAnyKeywordMatch),
 		)
 	}
 	for _, cand := range candidates {
 		if cand.similarity >= effectiveThreshold {
-			// 达到阈值，直接通过
+			// Reaches the threshold and passes directly
 			filteredCandidates = append(filteredCandidates, cand)
 		} else if !strictMode && cand.hasStrongKeywordMatch {
-			// 非严格模式下，有关键词匹配但相似度略低于阈值，适当放宽
-			// 严格模式下，即使有关键词匹配，也严格遵守阈值
+			// In non-strict mode, there are keyword matches but the similarity is slightly lower than the threshold, so relax appropriately.
+			// In strict mode, even if there is a keyword match, the threshold is strictly adhered to.
 			relaxedThreshold := math.Max(effectiveThreshold*0.85, 0.55)
 			if cand.similarity >= relaxedThreshold {
 				filteredCandidates = append(filteredCandidates, cand)
 			}
 		}
-		// 如果既没有关键词匹配，相似度又低于阈值，则过滤掉
+		// If there is no keyword match and the similarity is lower than the threshold, filter out
 	}
 
-	// 智能兜底策略：只有在最高相似度达到合理水平时，才考虑返回结果
-	// 如果最高相似度都很低（<0.55），说明确实没有相关内容，应该返回空
-	// 严格模式下（阈值>=0.8），禁用兜底策略，严格遵守用户设置的阈值
+	// Intelligent back-up strategy: Only when the highest similarity reaches a reasonable level, the result will be considered to be returned
+	// If the highest similarity is very low (<0.55), it means there is indeed no relevant content and empty should be returned.
+	// In strict mode (threshold >= 0.8), the cover-up policy is disabled and the threshold set by the user is strictly adhered to.
 	if len(filteredCandidates) == 0 && len(candidates) > 0 && !strictMode {
-		// 即使没有通过阈值过滤，如果最高相似度还可以（>=0.55），可以考虑返回Top-K
-		// 但这是最后的兜底，只在确实有一定相关性时才使用
-		// 严格模式下不使用兜底策略
+		// Even if the threshold filtering is not passed, if the highest similarity is okay (>=0.55), you can consider returning Top-K
+		// But this is a last resort and should only be used when there is a certain relevance.
+		// Do not use the cover-up strategy in strict mode
 		minAcceptableSimilarity := 0.55
 		if maxSimilarity >= minAcceptableSimilarity {
-			r.logger.Debug("过滤后无结果，但最高相似度可接受，返回Top-K结果",
+			r.logger.Debug("There are no results after filtering, but the highest similarity is acceptable, and Top-K results are returned.",
 				zap.Int("totalCandidates", len(candidates)),
 				zap.Float64("maxSimilarity", maxSimilarity),
 				zap.Float64("effectiveThreshold", effectiveThreshold),
@@ -338,51 +338,51 @@ func (r *Retriever) Search(ctx context.Context, req *SearchRequest) ([]*Retrieva
 			if len(candidates) < maxResults {
 				maxResults = len(candidates)
 			}
-			// 只返回相似度 >= 0.55 的结果
+			// Only results with similarity >= 0.55 are returned
 			for _, cand := range candidates {
 				if cand.similarity >= minAcceptableSimilarity && len(filteredCandidates) < maxResults {
 					filteredCandidates = append(filteredCandidates, cand)
 				}
 			}
 		} else {
-			r.logger.Debug("过滤后无结果，且最高相似度过低，返回空结果",
+			r.logger.Debug("There are no results after filtering, and the highest similarity is too low, so empty results are returned.",
 				zap.Int("totalCandidates", len(candidates)),
 				zap.Float64("maxSimilarity", maxSimilarity),
 				zap.Float64("minAcceptableSimilarity", minAcceptableSimilarity),
 			)
 		}
 	} else if len(filteredCandidates) == 0 && strictMode {
-		// 严格模式下，如果过滤后无结果，直接返回空，不使用兜底策略
-		r.logger.Debug("严格模式：过滤后无结果，严格遵守阈值，返回空结果",
+		// In strict mode, if there are no results after filtering, empty will be returned directly without using the cover-up strategy.
+		r.logger.Debug("Strict mode: no results after filtering, strictly comply with the threshold, and return empty results",
 			zap.Float64("threshold", threshold),
 			zap.Float64("maxSimilarity", maxSimilarity),
 		)
 	} else if len(filteredCandidates) > topK {
-		// 如果过滤后结果太多，只取Top-K
+		// If there are too many results after filtering, only take the Top-K
 		filteredCandidates = filteredCandidates[:topK]
 	}
 
 	candidates = filteredCandidates
 
-	// 混合排序（向量相似度 + BM25）
-	// 注意：hybridWeight可以是0.0（纯关键词检索），所以不设置默认值
-	// 如果配置文件中未设置，应该在配置加载时使用默认值
+	// Hybrid sorting (vector similarity + BM25)
+	// Note: hybridWeight can be 0.0 (pure keyword search), so no default value is set
+	// If not set in the configuration file, the default value should be used when the configuration is loaded
 	hybridWeight := r.config.HybridWeight
-	// 如果未设置，使用默认值0.7（偏重向量检索）
+	// If not set, the default value of 0.7 is used (biased towards vector retrieval)
 	if hybridWeight < 0 || hybridWeight > 1 {
-		r.logger.Warn("混合权重超出范围，使用默认值0.7",
+		r.logger.Warn("Blend weight out of range, use default value 0.7",
 			zap.Float64("provided", hybridWeight))
 		hybridWeight = 0.7
 	}
 
-	// 先计算混合分数并存储在candidate中，用于排序
+	// First calculate the mixture score and store it in candidate for sorting
 	for i := range candidates {
 		normalizedBM25 := math.Min(candidates[i].bm25Score, 1.0)
 		candidates[i].hybridScore = hybridWeight*candidates[i].similarity + (1-hybridWeight)*normalizedBM25
 
-		// 调试日志：记录前几个候选的分数计算（仅在debug级别）
+		// Debug log: record the score calculation of the first few candidates (only at debug level)
 		if i < 3 {
-			r.logger.Debug("混合分数计算",
+			r.logger.Debug("Mixed Fraction Calculation",
 				zap.Int("index", i),
 				zap.Float64("similarity", candidates[i].similarity),
 				zap.Float64("bm25Score", candidates[i].bm25Score),
@@ -392,12 +392,12 @@ func (r *Retriever) Search(ctx context.Context, req *SearchRequest) ([]*Retrieva
 		}
 	}
 
-	// 根据混合分数重新排序（这才是真正的混合检索）
+	// Reorder based on mixed scores (this is true mixed retrieval)
 	sort.Slice(candidates, func(i, j int) bool {
 		return candidates[i].hybridScore > candidates[j].hybridScore
 	})
 
-	// 转换为结果
+	// Convert to result
 	results := make([]*RetrievalResult, len(candidates))
 	for i, cand := range candidates {
 		results[i] = &RetrievalResult{
@@ -408,53 +408,53 @@ func (r *Retriever) Search(ctx context.Context, req *SearchRequest) ([]*Retrieva
 		}
 	}
 
-	// 上下文扩展：为每个匹配的chunk添加同一文档中的相关chunk
-	// 这可以防止文本描述和payload被分开切分时，只返回描述而丢失payload的问题
+	// Context expansion: for each matching chunk, add related chunks from the same document
+	// This can prevent the problem of only returning the description and losing the payload when the text description and payload are split separately.
 	results = r.expandContext(ctx, results)
 
 	return results, nil
 }
 
-// expandContext 扩展检索结果的上下文
-// 对于每个匹配的chunk，自动包含同一文档中的相关chunk（特别是包含代码块、payload的chunk）
+// ExpandContext expands the context of the search results
+// For each matching chunk, automatically include related chunks in the same document (especially chunks containing code blocks and payloads)
 func (r *Retriever) expandContext(ctx context.Context, results []*RetrievalResult) []*RetrievalResult {
 	if len(results) == 0 {
 		return results
 	}
 
-	// 收集所有匹配到的文档ID
+	// Collect all matching document IDs
 	itemIDs := make(map[string]bool)
 	for _, result := range results {
 		itemIDs[result.Item.ID] = true
 	}
 
-	// 为每个文档加载所有chunk
+	// Load all chunks for each document
 	itemChunksMap := make(map[string][]*KnowledgeChunk)
 	for itemID := range itemIDs {
 		chunks, err := r.loadAllChunksForItem(itemID)
 		if err != nil {
-			r.logger.Warn("加载文档chunk失败", zap.String("itemId", itemID), zap.Error(err))
+			r.logger.Warn("Failed to load document chunk", zap.String("itemId", itemID), zap.Error(err))
 			continue
 		}
 		itemChunksMap[itemID] = chunks
 	}
 
-	// 按文档分组结果，每个文档只扩展一次
+	// Group results by document, expanding each document only once
 	resultsByItem := make(map[string][]*RetrievalResult)
 	for _, result := range results {
 		itemID := result.Item.ID
 		resultsByItem[itemID] = append(resultsByItem[itemID], result)
 	}
 
-	// 扩展每个文档的结果
+	// Expand results for each document
 	expandedResults := make([]*RetrievalResult, 0, len(results))
-	processedChunkIDs := make(map[string]bool) // 避免重复添加
+	processedChunkIDs := make(map[string]bool) // Avoid duplicate additions
 
 	for itemID, itemResults := range resultsByItem {
-		// 获取该文档的所有chunk
+		// Get all chunks of the document
 		allChunks, exists := itemChunksMap[itemID]
 		if !exists {
-			// 如果无法加载chunk，直接添加原始结果
+			// If the chunk cannot be loaded, add the original result directly
 			for _, result := range itemResults {
 				if !processedChunkIDs[result.Chunk.ID] {
 					expandedResults = append(expandedResults, result)
@@ -464,7 +464,7 @@ func (r *Retriever) expandContext(ctx context.Context, results []*RetrievalResul
 			continue
 		}
 
-		// 添加原始结果
+		// Add original result
 		for _, result := range itemResults {
 			if !processedChunkIDs[result.Chunk.ID] {
 				expandedResults = append(expandedResults, result)
@@ -472,50 +472,50 @@ func (r *Retriever) expandContext(ctx context.Context, results []*RetrievalResul
 			}
 		}
 
-		// 为该文档的匹配chunk收集需要扩展的相邻chunk
-		// 策略：只对混合分数最高的前3个匹配chunk进行扩展，避免扩展过多
-		// 先按混合分数排序，只扩展前3个（使用混合分数而不是相似度）
+		// Collect adjacent chunks that need to be extended for matching chunks of this document
+		// Strategy: Only expand the first three matching chunks with the highest mixing scores to avoid excessive expansion.
+		// Sort by mixture score first and only expand the top 3 (use mixture score instead of similarity)
 		sortedItemResults := make([]*RetrievalResult, len(itemResults))
 		copy(sortedItemResults, itemResults)
 		sort.Slice(sortedItemResults, func(i, j int) bool {
 			return sortedItemResults[i].Score > sortedItemResults[j].Score
 		})
 
-		// 只扩展前3个（或所有，如果少于3个）
+		// Expand only the first 3 (or all, if less than 3)
 		maxExpandFrom := 3
 		if len(sortedItemResults) < maxExpandFrom {
 			maxExpandFrom = len(sortedItemResults)
 		}
 
-		// 使用map去重，避免同一个chunk被多次添加
+		// Use map to remove duplicates to avoid the same chunk being added multiple times
 		relatedChunksMap := make(map[string]*KnowledgeChunk)
 
 		for i := 0; i < maxExpandFrom; i++ {
 			result := sortedItemResults[i]
-			// 查找相关chunk（上下各2个，排除已处理的chunk）
+			// Find relevant chunks (two above and below, excluding processed chunks)
 			relatedChunks := r.findRelatedChunks(result.Chunk, allChunks, processedChunkIDs)
 			for _, relatedChunk := range relatedChunks {
-				// 使用chunk ID作为key去重
+				// Use chunk ID as key to remove duplicates
 				if !processedChunkIDs[relatedChunk.ID] {
 					relatedChunksMap[relatedChunk.ID] = relatedChunk
 				}
 			}
 		}
 
-		// 限制每个文档最多扩展的chunk数量（避免扩展过多）
-		// 策略：最多扩展8个chunk，无论匹配了多少个chunk
-		// 这样可以避免当多个匹配chunk分散在文档不同位置时，扩展出过多chunk
+		// Limit the maximum number of expanded chunks for each document (to avoid excessive expansion)
+		// Strategy: Expand up to 8 chunks, no matter how many chunks are matched
+		// This can avoid expanding too many chunks when multiple matching chunks are scattered in different locations in the document.
 		maxExpandPerItem := 8
 
-		// 将相关chunk转换为切片并按索引排序，优先选择距离匹配chunk最近的
+		// Convert relevant chunks into slices and sort them by index, giving priority to the ones closest to matching chunks.
 		relatedChunksList := make([]*KnowledgeChunk, 0, len(relatedChunksMap))
 		for _, chunk := range relatedChunksMap {
 			relatedChunksList = append(relatedChunksList, chunk)
 		}
 
-		// 计算每个相关chunk到最近匹配chunk的距离，按距离排序
+		// Calculate the distance from each relevant chunk to the nearest matching chunk, sorted by distance
 		sort.Slice(relatedChunksList, func(i, j int) bool {
-			// 计算到最近匹配chunk的距离
+			// Calculate the distance to the nearest matching chunk
 			minDistI := len(allChunks)
 			minDistJ := len(allChunks)
 			for _, result := range itemResults {
@@ -531,13 +531,13 @@ func (r *Retriever) expandContext(ctx context.Context, results []*RetrievalResul
 			return minDistI < minDistJ
 		})
 
-		// 限制数量
+		// Limited quantity
 		if len(relatedChunksList) > maxExpandPerItem {
 			relatedChunksList = relatedChunksList[:maxExpandPerItem]
 		}
 
-		// 添加去重后的相关chunk
-		// 使用该文档中混合分数最高的结果作为参考
+		// Add relevant chunks after deduplication
+		// Use the result with the highest blending score in that document as a reference
 		maxScore := 0.0
 		maxSimilarity := 0.0
 		for _, result := range itemResults {
@@ -549,19 +549,19 @@ func (r *Retriever) expandContext(ctx context.Context, results []*RetrievalResul
 			}
 		}
 
-		// 计算扩展chunk的混合分数（使用相同的混合权重）
+		// Calculate the mixing score of the extended chunk (using the same mixing weight)
 		hybridWeight := r.config.HybridWeight
-		expandedSimilarity := maxSimilarity * 0.8 // 相关chunk的相似度略低
-		// 对于扩展的chunk，BM25分数设为0（因为它们是上下文扩展，不是直接匹配）
+		expandedSimilarity := maxSimilarity * 0.8 // The similarity of related chunks is slightly lower
+		// For extended chunks, the BM25 score is set to 0 (because they are contextual extensions, not direct matches)
 		expandedBM25 := 0.0
 		expandedScore := hybridWeight*expandedSimilarity + (1-hybridWeight)*expandedBM25
 
 		for _, relatedChunk := range relatedChunksList {
 			expandedResult := &RetrievalResult{
 				Chunk:      relatedChunk,
-				Item:       itemResults[0].Item, // 使用第一个结果的Item信息
+				Item:       itemResults[0].Item, // Use the Item information of the first result
 				Similarity: expandedSimilarity,
-				Score:      expandedScore, // 使用正确的混合分数
+				Score:      expandedScore, // Use the correct mixture fraction
 			}
 			expandedResults = append(expandedResults, expandedResult)
 			processedChunkIDs[relatedChunk.ID] = true
@@ -571,7 +571,7 @@ func (r *Retriever) expandContext(ctx context.Context, results []*RetrievalResul
 	return expandedResults
 }
 
-// loadAllChunksForItem 加载文档的所有chunk
+// LoadAllChunksForItem loads all chunks of the document
 func (r *Retriever) loadAllChunksForItem(itemID string) ([]*KnowledgeChunk, error) {
 	rows, err := r.db.Query(`
 		SELECT id, item_id, chunk_index, chunk_text, embedding
@@ -580,7 +580,7 @@ func (r *Retriever) loadAllChunksForItem(itemID string) ([]*KnowledgeChunk, erro
 		ORDER BY chunk_index
 	`, itemID)
 	if err != nil {
-		return nil, fmt.Errorf("查询chunk失败: %w", err)
+		return nil, fmt.Errorf("Failed to query chunk: %w", err)
 	}
 	defer rows.Close()
 
@@ -590,11 +590,11 @@ func (r *Retriever) loadAllChunksForItem(itemID string) ([]*KnowledgeChunk, erro
 		var chunkIndex int
 
 		if err := rows.Scan(&chunkID, &itemID, &chunkIndex, &chunkText, &embeddingJSON); err != nil {
-			r.logger.Warn("扫描chunk失败", zap.Error(err))
+			r.logger.Warn("Scanning chunk failed", zap.Error(err))
 			continue
 		}
 
-		// 解析向量（可选，这里不需要）
+		// Parse vector (optional, not needed here)
 		var embedding []float32
 		if embeddingJSON != "" {
 			json.Unmarshal([]byte(embeddingJSON), &embedding)
@@ -613,38 +613,38 @@ func (r *Retriever) loadAllChunksForItem(itemID string) ([]*KnowledgeChunk, erro
 	return chunks, nil
 }
 
-// findRelatedChunks 查找与给定chunk相关的其他chunk
-// 策略：只返回上下各2个相邻的chunk（共最多4个）
-// 排除已处理的chunk，避免重复添加
+// FindRelatedChunks finds other chunks related to a given chunk
+// Strategy: Only return 2 adjacent chunks above and below (up to 4 in total)
+// Exclude processed chunks to avoid repeated additions
 func (r *Retriever) findRelatedChunks(targetChunk *KnowledgeChunk, allChunks []*KnowledgeChunk, processedChunkIDs map[string]bool) []*KnowledgeChunk {
 	related := make([]*KnowledgeChunk, 0)
 
-	// 查找上下各2个相邻chunk
+	// Find 2 adjacent chunks above and below
 	for _, chunk := range allChunks {
 		if chunk.ID == targetChunk.ID {
 			continue
 		}
 
-		// 检查是否已经被处理过（可能已经在检索结果中）
+		// Check if it has been processed (may be already in the search results)
 		if processedChunkIDs[chunk.ID] {
 			continue
 		}
 
-		// 检查是否是相邻chunk（索引相差不超过2，且不为0）
+		// Check whether they are adjacent chunks (the index difference does not exceed 2 and is not 0)
 		indexDiff := chunk.ChunkIndex - targetChunk.ChunkIndex
 		if indexDiff >= -2 && indexDiff <= 2 && indexDiff != 0 {
 			related = append(related, chunk)
 		}
 	}
 
-	// 按索引距离排序，优先选择最近的
+	// Sort by index distance, giving priority to the nearest
 	sort.Slice(related, func(i, j int) bool {
 		diffI := abs(related[i].ChunkIndex - targetChunk.ChunkIndex)
 		diffJ := abs(related[j].ChunkIndex - targetChunk.ChunkIndex)
 		return diffI < diffJ
 	})
 
-	// 限制最多返回4个（上下各2个）
+	// Limit returns to 4 at most (2 above and 2 below)
 	if len(related) > 4 {
 		related = related[:4]
 	}
@@ -652,7 +652,7 @@ func (r *Retriever) findRelatedChunks(targetChunk *KnowledgeChunk, allChunks []*
 	return related
 }
 
-// abs 返回整数的绝对值
+// Abs returns the absolute value of an integer
 func abs(x int) int {
 	if x < 0 {
 		return -x

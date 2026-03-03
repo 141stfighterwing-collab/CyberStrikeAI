@@ -1,46 +1,46 @@
 name: "mimikatz"
 command: "mimikatz.exe"
 enabled: false
-short_description: "Windows 凭证提取工具，用于提取内存中的密码和哈希"
+short_description: "Windows Credentials Extraction Tool for extracting passwords and hashes from memory"
 description: |
-  Mimikatz 是一个强大的 Windows 凭证提取工具，可以从内存中提取明文密码、哈希值、票据等敏感信息。
+Mimikatz is a powerful Windows credential extraction tool that can extract sensitive information such as plaintext passwords, hashes, tickets, etc. from memory.
 
-  **主要功能：**
-  - 提取内存中的明文密码
-  - 提取 NTLM 哈希
-  - 提取 Kerberos 票据
-  - Pass-the-Hash 攻击
-  - Pass-the-Ticket 攻击
-  - 凭证转储
+**Main functions:**
+- Extract clear text passwords from memory
+- Extract NTLM hash
+- Extract Kerberos tickets
+- Pass-the-Hash attack
+- Pass-the-Ticket attack
+- Credential dump
 
-  **使用场景：**
-  - 后渗透测试
-  - 横向移动
-  - 权限提升
-  - 安全研究
+**Usage scenario:**
+- Post-penetration testing
+- Lateral movement
+- Privilege escalation
+- Security research
 
-  **注意事项：**
-  - 需要管理员权限运行
-  - 可能被杀毒软件检测
-  - 仅用于授权的安全测试
-  - 使用前需要进入 mimikatz 交互式命令行
+**Note:**
+- Requires administrator rights to run
+- May be detected by anti-virus software
+- For authorized security testing only
+- You need to enter the mimikatz interactive command line before use
 parameters:
   - name: "command"
     type: "string"
-    description: "Mimikatz 命令，例如 'privilege::debug sekurlsa::logonpasswords'"
+    description: "Mimikatz commands such as 'privilege::debug sekurlsa::logonpasswords'"
     required: true
     format: "positional"
   - name: "additional_args"
     type: "string"
     description: |
-      额外的mimikatz参数。用于传递未在参数列表中定义的mimikatz选项。
+Additional mimikatz parameters. Used to pass mimikatz options that are not defined in the argument list.
 
-      **示例值：**
-      - 根据工具特性添加常用参数示例
+**Example value:**
+- Add common parameter examples based on tool features
 
-      **注意事项：**
-      - 多个参数用空格分隔
-      - 确保参数格式正确，避免命令注入
-      - 此参数会直接追加到命令末尾
+**Note:**
+- Multiple parameters separated by spaces
+- Ensure the parameter format is correct to avoid command injection
+- This parameter will be appended directly to the end of the command
     required: false
     format: "positional"

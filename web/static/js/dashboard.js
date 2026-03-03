@@ -1,4 +1,4 @@
-// 仪表盘页面：拉取运行中任务、漏洞统计、批量任务、工具与 Skills 统计并渲染
+// Dashboard page: pull running tasks, vulnerability statistics, batch tasks, tools and Skills statistics and render them
 
 async function refreshDashboard() {
     const runningEl = document.getElementById('dashboard-running-tasks');
@@ -17,7 +17,7 @@ async function refreshDashboard() {
     setEl('dashboard-kpi-tools-calls', '…');
     setEl('dashboard-kpi-success-rate', '…');
     var chartPlaceholder = document.getElementById('dashboard-tools-pie-placeholder');
-    if (chartPlaceholder) { chartPlaceholder.style.removeProperty('display'); chartPlaceholder.textContent = '加载中…'; }
+    if (chartPlaceholder) { chartPlaceholder.style.removeProperty('display'); chartPlaceholder.textContent = 'Loading…'; }
     var barChartEl = document.getElementById('dashboard-tools-bar-chart');
     if (barChartEl) { barChartEl.style.display = 'none'; barChartEl.innerHTML = ''; }
 
@@ -63,7 +63,7 @@ async function refreshDashboard() {
             });
         }
 
-        // 批量任务队列：按状态统计（优化版）
+        // Batch task queue: statistics by status (optimized version)
         if (batchRes && Array.isArray(batchRes.queues)) {
             const queues = batchRes.queues;
             let pending = 0, running = 0, done = 0;
@@ -77,9 +77,9 @@ async function refreshDashboard() {
             setEl('dashboard-batch-pending', String(pending));
             setEl('dashboard-batch-running', String(running));
             setEl('dashboard-batch-done', String(done));
-            setEl('dashboard-batch-total', total > 0 ? `共 ${total} 个` : '暂无任务');
+            setEl('dashboard-batch-total', total > 0 ? `共 ${total} 个` : 'No tasks yet');
             
-            // 更新进度条
+            // Update progress bar
             if (total > 0) {
                 const pendingPct = (pending / total * 100).toFixed(1);
                 const runningPct = (running / total * 100).toFixed(1);
@@ -102,7 +102,7 @@ async function refreshDashboard() {
             updateProgressBar('dashboard-batch-progress-done', '0');
         }
 
-        // 工具调用：monitor/stats 为 { toolName: { totalCalls, successCalls, failedCalls, ... } }（优化版）
+        // Tool call: monitor/stats is { toolName: { totalCalls, successCalls, failedCalls, ... } } (optimized version)
         if (monitorRes && typeof monitorRes === 'object') {
             const names = Object.keys(monitorRes);
             let totalCalls = 0, totalSuccess = 0, totalFailed = 0;
@@ -131,14 +131,14 @@ async function refreshDashboard() {
             renderDashboardToolsBar(null);
         }
 
-        // 知识：{ enabled, total_categories, total_items, ... }（优化版）
+        // Knowledge: { enabled, total_categories, total_items, ... } (optimized version)
         const knowledgeItemsEl = document.getElementById('dashboard-knowledge-items');
         const knowledgeCategoriesEl = document.getElementById('dashboard-knowledge-categories');
         const knowledgeStatusEl = document.getElementById('dashboard-knowledge-status');
         if (knowledgeRes && typeof knowledgeRes === 'object') {
             if (knowledgeRes.enabled === false) {
-                // 功能未启用：用状态标签展示，数值保持为 "-"
-                if (knowledgeStatusEl) knowledgeStatusEl.textContent = '未启用';
+                // Feature not enabled: Displayed with status label, value remains "-"
+                if (knowledgeStatusEl) knowledgeStatusEl.textContent = 'Not enabled';
                 if (knowledgeItemsEl) knowledgeItemsEl.textContent = '-';
                 if (knowledgeCategoriesEl) knowledgeCategoriesEl.textContent = '-';
             } else {
@@ -146,12 +146,12 @@ async function refreshDashboard() {
                 const items = knowledgeRes.total_items ?? 0;
                 if (knowledgeItemsEl) knowledgeItemsEl.textContent = formatNumber(items);
                 if (knowledgeCategoriesEl) knowledgeCategoriesEl.textContent = formatNumber(categories);
-                // 根据数据量给个轻量状态文案
+                // Give a lightweight status copy based on the amount of data
                 if (knowledgeStatusEl) {
                     if (items > 0 || categories > 0) {
-                        knowledgeStatusEl.textContent = '已启用';
+                        knowledgeStatusEl.textContent = 'Enabled';
                     } else {
-                        knowledgeStatusEl.textContent = '待配置';
+                        knowledgeStatusEl.textContent = 'To be configured';
                     }
                 }
             }
@@ -161,26 +161,26 @@ async function refreshDashboard() {
             if (knowledgeStatusEl) knowledgeStatusEl.textContent = '-';
         }
 
-        // Skills：{ total_skills, total_calls, ... }（优化版）
+        // Skills: { total_skills, total_calls, ... } (optimized version)
         if (skillsRes && typeof skillsRes === 'object') {
             const totalSkills = skillsRes.total_skills ?? 0;
             const totalCalls = skillsRes.total_calls ?? 0;
             setEl('dashboard-skills-count', formatNumber(totalSkills));
             setEl('dashboard-skills-calls', formatNumber(totalCalls));
             
-            // 设置状态标签
+            // Set status label
             const statusEl = document.getElementById('dashboard-skills-status');
             if (statusEl) {
                 if (totalCalls === 0) {
-                    statusEl.textContent = '待使用';
+                    statusEl.textContent = 'To be used';
                     statusEl.style.background = 'rgba(0, 0, 0, 0.05)';
                     statusEl.style.color = 'var(--text-secondary)';
                 } else if (totalCalls < 10) {
-                    statusEl.textContent = '活跃';
+                    statusEl.textContent = 'Active';
                     statusEl.style.background = 'rgba(16, 185, 129, 0.1)';
                     statusEl.style.color = '#10b981';
                 } else {
-                    statusEl.textContent = '高频';
+                    statusEl.textContent = 'High frequency';
                     statusEl.style.background = 'rgba(59, 130, 246, 0.1)';
                     statusEl.style.color = '#3b82f6';
                 }
@@ -192,7 +192,7 @@ async function refreshDashboard() {
             if (statusEl) statusEl.textContent = '-';
         }
     } catch (e) {
-        console.warn('仪表盘拉取统计失败', e);
+        console.warn('Failed to pull statistics from dashboard', e);
         if (runningEl) runningEl.textContent = '-';
         if (vulnTotalEl) vulnTotalEl.textContent = '-';
         setDashboardOverviewPlaceholder('-');
@@ -200,7 +200,7 @@ async function refreshDashboard() {
         setEl('dashboard-kpi-tools-calls', '-');
         renderDashboardToolsBar(null);
         var ph = document.getElementById('dashboard-tools-pie-placeholder');
-        if (ph) { ph.style.removeProperty('display'); ph.textContent = '暂无调用数据'; }
+        if (ph) { ph.style.removeProperty('display'); ph.textContent = 'No call data yet'; }
     }
 }
 
@@ -219,14 +219,14 @@ function setDashboardOverviewPlaceholder(t) {
     updateProgressBar('dashboard-batch-progress-done', '0');
 }
 
-// 格式化数字，添加千位分隔符
+// Format numbers, add thousand separators
 function formatNumber(num) {
     if (typeof num !== 'number' || isNaN(num)) return '-';
     if (num === 0) return '0';
     return num.toLocaleString('zh-CN');
 }
 
-// 更新进度条宽度
+// Update progress bar width
 function updateProgressBar(id, percentage) {
     const el = document.getElementById(id);
     if (el) {
@@ -235,7 +235,7 @@ function updateProgressBar(id, percentage) {
     }
 }
 
-// Top 30 工具执行次数柱状图颜色（30 色不重复，柔和、易区分）
+// Top 30 tool execution times histogram colors (30 colors are non-repeating, soft and easy to distinguish)
 var DASHBOARD_BAR_COLORS = [
     '#93c5fd', '#a78bfa', '#6ee7b7', '#fde047', '#fda4af',
     '#7dd3fc', '#a5b4fc', '#5eead4', '#fdba74', '#e9d5ff',
@@ -257,7 +257,7 @@ function renderDashboardToolsBar(monitorRes) {
 
     if (!monitorRes || typeof monitorRes !== 'object') {
         placeholder.style.removeProperty('display');
-        placeholder.textContent = '暂无调用数据';
+        placeholder.textContent = 'No call data yet';
         barChartEl.style.display = 'none';
         barChartEl.innerHTML = '';
         return;
@@ -273,7 +273,7 @@ function renderDashboardToolsBar(monitorRes) {
 
     if (entries.length === 0) {
         placeholder.style.removeProperty('display');
-        placeholder.textContent = '暂无调用数据';
+        placeholder.textContent = 'No call data yet';
         barChartEl.style.display = 'none';
         barChartEl.innerHTML = '';
         return;

@@ -1,151 +1,151 @@
-# CyberStrikeAI 机器人使用说明
+# CyberStrikeAI Robot Instructions
 
 [English](robot_en.md)
 
-本文档说明如何通过**钉钉**、**飞书**与 CyberStrikeAI 对话（长连接模式），在手机端即可使用，无需在服务器上打开网页。按下面步骤操作可避免常见弯路。
+This document explains how to talk to CyberStrikeAI through **DingTalk** and **Feishu** (long connection mode), which can be used on the mobile phone without opening a web page on the server. Follow these steps to avoid common detours.
 
 ---
 
-## 一、在 CyberStrikeAI 里从哪里配置
+## 1. Where to configure in CyberStrikeAI
 
-1. 登录 CyberStrikeAI Web 端  
-2. 左侧导航进入 **系统设置**  
-3. 在左侧设置分类中点击 **机器人设置**（位于「基本设置」与「安全设置」之间）  
-4. 按平台勾选并填写（钉钉填 Client ID / Client Secret，飞书填 App ID / App Secret）  
-5. 点击 **应用配置** 保存  
-6. **重启 CyberStrikeAI 应用**（只保存不重启，机器人不会连上）
+1. Log in to CyberStrikeAI web client
+2. Navigate to the left to enter **System Settings**
+3. Click **Robot Settings** in the settings category on the left (located between "Basic Settings" and "Security Settings")
+4. Check and fill in the boxes according to the platform (Client ID/Client Secret for DingTalk, App ID/App Secret for Feishu)
+5. Click **App Configuration** to save
+6. **Restart the CyberStrikeAI application** (just save without restarting, the robot will not connect)
 
-配置会写入 `config.yaml` 的 `robots` 段，也可在配置文件中直接编辑。**修改钉钉/飞书配置后必须重启，长连接才会生效。**
+The configuration will be written to the `robots` section of `config.yaml` and can also be edited directly in the configuration file. **After modifying the DingTalk/Feishu configuration, you must restart it for the long connection to take effect. **
 
 ---
 
-## 二、支持的平台（长连接）
+## 2. Supported platforms (long connection)
 
-| 平台 | 说明 |
+| Platform | Description |
 |------|------|
-| 钉钉 | 使用 Stream 长连接，程序主动连接钉钉接收消息 |
-| 飞书 | 使用长连接，程序主动连接飞书接收消息 |
+| DingTalk | Using Stream long connection, the program actively connects to DingTalk to receive messages |
+| Feishu | Using long connections, the program actively connects to Feishu to receive messages |
 
-下面第三节会按平台写清：在开放平台要做什么、要复制哪些字段、填到 CyberStrikeAI 的哪一栏。
+The following third section will clarify by platform: what to do on the open platform, which fields to copy, and which column to fill in in CyberStrikeAI.
 
 ---
 
-## 三、各平台配置项与详细步骤
+## 3. Configuration items and detailed steps for each platform
 
-### 3.1 钉钉
+### 3.1 DingTalk
 
-**先搞清楚：两种钉钉机器人不一样**
+**Let’s figure it out first: the two DingTalk robots are different**
 
-| 类型 | 从哪里创建 | 能否做「用户发消息→机器人回复」 | 本程序是否支持 |
+| Type | Where to create | Can you do "user sends message → robot reply" | Does this program support |
 |------|------------|----------------------------------|----------------|
-| **自定义机器人** | 钉钉群里：群设置 → 添加机器人 → 自定义（Webhook） | ❌ 不能，只能你往群里发消息 | ❌ 不支持 |
-| **企业内部应用机器人** | [钉钉开放平台](https://open.dingtalk.com) 创建应用并开通机器人 | ✅ 能 | ✅ 支持 |
+| **Customized robot** | DingTalk group: Group settings → Add robot → Customize (Webhook) | ❌ No, you can only send messages to the group | ❌ Not supported |
+| **Internal enterprise application robot** | [DingTalk Open Platform](https://open.dingtalk.com) Create an application and activate the robot | ✅ Can | ✅ Support |
 
-如果你手里是「自定义机器人」的 Webhook 地址（`oapi.dingtalk.com/robot/send?access_token=xxx`）和加签密钥（`SEC...`），**不能直接填到本程序**，必须按下面步骤在开放平台创建「企业内部应用」并拿到 **Client ID**、**Client Secret**。
-
----
-
-**钉钉配置完整步骤（按顺序做）**
-
-1. **打开钉钉开放平台**  
-   浏览器访问 [https://open.dingtalk.com](https://open.dingtalk.com)，用**企业管理员**账号登录。
-
-2. **进入应用开发**  
-   左侧选 **应用开发** → **企业内部开发** → 点击 **创建应用**（或选择已有应用）。填写应用名称等基本信息后创建。
-
-3. **拿到 Client ID 和 Client Secret**  
-   - 左侧点 **凭证与基础信息**（在「基础信息」下）。  
-   - 页面上有 **Client ID（原 AppKey）** 和 **Client Secret（原 AppSecret）**。  
-   - 点击复制，**不要手打**，注意：数字 **0** 和字母 **o**、数字 **1** 和字母 **l** 容易抄错（例如 `ding9gf9tiozuc504aer` 中间是数字 **504** 不是 5o4）。
-
-4. **开通机器人并选 Stream 模式**  
-   - 左侧 **应用能力** → **机器人**。  
-   - 打开「机器人配置」开关。  
-   - 填写机器人名称、简介等（必填项按提示填）。  
-   - **关键**：消息接收方式要选 **「Stream 模式」**（流式接入）。若只有「HTTP 回调」或未选 Stream，本程序收不到消息。  
-   - 保存。
-
-5. **权限与发布**  
-   - 左侧 **权限管理**：搜索「机器人」「消息」等，勾选**接收消息**、**发送消息**等机器人相关权限，并确认授权。  
-   - 左侧 **版本管理与发布**：若有未发布配置，点击 **发布新版本** / **上线**，否则修改不生效。
-
-6. **填回 CyberStrikeAI**  
-   - 回到 CyberStrikeAI → 系统设置 → 机器人设置 → 钉钉。  
-   - 勾选「启用钉钉机器人」。  
-   - **Client ID (AppKey)** 粘贴第 3 步复制的 Client ID。  
-   - **Client Secret** 粘贴第 3 步复制的 Client Secret。  
-   - 点击 **应用配置**，然后**重启 CyberStrikeAI**。
+If you have the Webhook address (`oapi.dingtalk.com/robot/send?access_token=xxx`) and signing key (`SEC...`) of a "custom robot" in your hand, you cannot fill them in directly into this program**. You must follow the steps below to create an "enterprise internal application" on the open platform and get the **Client ID** and **Client Secret**.
 
 ---
 
-**CyberStrikeAI 钉钉栏位对照**
+**Complete steps for DingTalk configuration (do it in order)**
 
-| CyberStrikeAI 中填写项 | 在钉钉开放平台的来源 |
+1. **Open DingTalk Open Platform**
+Visit [https://open.dingtalk.com](https://open.dingtalk.com) with your browser and log in with the **Enterprise Administrator** account.
+
+2. **Enter application development**
+Select **Application Development** on the left → **Internal Enterprise Development** → click **Create Application** (or select an existing application). Create after filling in basic information such as the application name.
+
+3. **Get Client ID and Client Secret**
+- Click on **Certificates and Basic Information** on the left (under "Basic Information").
+- There are **Client ID (formerly AppKey)** and **Client Secret (formerly AppSecret)** on the page.
+- Click to copy, **Do not type by hand**, note: the number **0** and the letter **o**, the number **1** and the letter **l** are easy to copy wrong (for example, `ding9gf9tiozuc504aer` has the number **504** in the middle, not 5o4).
+
+4. **Activate the robot and select Stream mode**
+- Left **Application Abilities** → **Robots**.
+- Turn on the "Robot Configuration" switch.
+- Fill in the robot name, introduction, etc. (required fields are filled in as prompted).
+- **Key**: Select **"Stream Mode"** (streaming access) as the message receiving method. If there is only "HTTP callback" or Stream is not selected, this program will not receive the message.
+- Save.
+
+5. **Permissions and Release**
+- **Permission Management** on the left: Search for "robot", "message", etc., check **receive messages**, **send messages** and other robot-related permissions, and confirm authorization.
+- **Version Management and Release** on the left: If there are unreleased configurations, click **Publish New Version** / **Go Online**, otherwise the modification will not take effect.
+
+6. **Fill in CyberStrikeAI**
+- Go back to CyberStrikeAI → System Settings → Robot Settings → DingTalk.
+- Check "Enable DingTalk Bot".
+- **Client ID (AppKey)** Paste the Client ID copied in step 3.
+- **Client Secret** Paste the Client Secret copied in step 3.
+- Click **Apply Configuration** and then **Restart CyberStrikeAI**.
+
+---
+
+**CyberStrikeAI DingTalk field comparison**
+
+| Fill in the fields in CyberStrikeAI | Source on DingTalk Open Platform |
 |------------------------|------------------------|
-| 启用钉钉机器人 | 勾选即启用 |
-| Client ID (AppKey) | 凭证与基础信息 → **Client ID（原 AppKey）** |
-| Client Secret | 凭证与基础信息 → **Client Secret（原 AppSecret）** |
+| Enable DingTalk robot | Check to enable |
+| Client ID (AppKey) | Credentials and basic information → **Client ID (formerly AppKey)** |
+| Client Secret | Credentials and basic information → **Client Secret (formerly AppSecret)** |
 
 ---
 
-### 3.2 飞书 (Lark)
+### 3.2 Feishu (Lark)
 
-| 配置项 | 说明 |
+| Configuration items | Description |
 |--------|------|
-| 启用飞书机器人 | 勾选后启动飞书长连接 |
-| App ID | 飞书开放平台应用凭证中的 App ID |
-| App Secret | 飞书开放平台应用凭证中的 App Secret |
-| Verify Token | 事件订阅用（可选） |
+| Enable Feishu robot | Check to activate Feishu long connection |
+| App ID | App ID in Feishu Open Platform application certificate |
+| App Secret | App Secret in Feishu Open Platform Application Credentials |
+| Verify Token | For event subscription (optional) |
 
-**飞书配置简要步骤**：登录 [飞书开放平台](https://open.feishu.cn) → 创建企业自建应用 → 在「凭证与基础信息」中获取 **App ID**、**App Secret** → 在「应用能力」中开通**机器人**并启用相应权限 → 发布应用 → 将 App ID、App Secret 填到 CyberStrikeAI 机器人设置 → 保存并**重启应用**。
+**Feishu configuration brief steps**: Log in [Feishu Open Platform] (https://open.feishu.cn) → Create a self-built enterprise application → Obtain **App ID** and **App Secret** in "Credentials and Basic Information" → Activate **Robot** in "Application Capabilities" and enable the corresponding permissions → Publish the application → Fill in the App ID and App Secret into CyberStrikeAI robot settings → Save and **restart the application**.
 
 ---
 
-## 四、机器人命令
+## 4. Robot commands
 
-在钉钉/飞书中向机器人发送以下**文本命令**（仅支持文本）：
+Send the following **text commands** to the robot on DingTalk/Feishu (only text is supported):
 
-| 命令 | 说明 |
+| Command | Description |
 |------|------|
-| **帮助** | 显示命令帮助与说明 |
-| **列表** 或 **对话列表** | 列出所有对话的标题与对话 ID |
-| **切换 \<对话ID\>** 或 **继续 \<对话ID\>** | 指定对话 ID，后续消息在该对话中继续 |
-| **新对话** | 开启一个新对话，后续消息在新对话中 |
-| **清空** | 清空当前对话上下文（效果等同「新对话」） |
-| **当前** | 显示当前对话 ID 与标题 |
-| **停止** | 中断当前正在执行的任务 |
-| **角色** 或 **角色列表** | 列出所有可用角色（渗透测试、CTF、Web 应用扫描等） |
-| **角色 \<角色名\>** 或 **切换角色 \<角色名\>** | 切换当前使用的角色 |
+| **Help** | Display command help and instructions |
+| **List** or **Conversation List** | List the titles and conversation IDs of all conversations |
+| **切换 \<对话ID\>** or **Continue \<对话ID\>** | 指定对话 ID，后续消息在该对话中继续 |
+| **New Conversation** | Open a new conversation, follow-up messages will be in the new conversation |
+| **Clear** | Clear the current conversation context (the effect is the same as "new conversation") |
+| **Current** | Display the current conversation ID and title |
+| **Stop** | Interrupt the currently executing task |
+| **role** or **role list** | List all available roles (penetration testing, CTF, web application scanning, etc.) |
+| **角色 \<角色名\>** or **Switch role \<角色名\>** | 切换当前使用的角色 |
 | **删除 \<对话ID\>** | 删除指定对话 |
-| **版本** | 显示当前 CyberStrikeAI 版本号 |
+| **Version** | Displays the current CyberStrikeAI version number |
 
-除以上命令外，**直接输入任意文字**会作为用户消息发给 AI，与 Web 端对话逻辑一致（渗透测试/安全分析等）。
-
----
-
-## 五、如何使用（要 @ 机器人吗？）
-
-- **单聊（推荐）**：在钉钉/飞书里**搜索并打开该机器人**，进入与机器人的**私聊**，直接输入「帮助」或任意文字即可，**不需要 @**。  
-- **群聊**：若机器人被添加到群里，在群内只有 **@机器人** 后发送的消息才会被机器人收到并回复；不 @ 的群消息不会触发机器人。
-
-总结：和机器人**单聊时直接发**；在**群里用时需要 @机器人** 再发内容。
+In addition to the above commands, **directly input any text** will be sent to the AI ​​as a user message, consistent with the web dialogue logic (penetration testing/security analysis, etc.).
 
 ---
 
-## 六、推荐使用流程（避免漏步骤）
+## 5. How to use (Do you want @robot?)
 
-1. **在开放平台**：按第三节完成钉钉或飞书应用创建、凭证复制、机器人开通（钉钉务必选 **Stream 模式**）、权限与发布。  
-2. **在 CyberStrikeAI**：系统设置 → 机器人设置 → 勾选对应平台，粘贴 Client ID/App ID、Client Secret/App Secret → 点击 **应用配置**。  
-3. **重启 CyberStrikeAI 进程**（否则长连接不会建立）。  
-4. **在手机钉钉/飞书**：找到该机器人（单聊直接发，群聊需 @机器人），发「帮助」或任意内容测试。
+- **Personal chat (recommended)**: **Search and open the bot** in DingTalk/Feishu, enter the **private chat** with the bot, and directly enter "help" or any text, **no need for @**.
+- **Group Chat**: If a robot is added to a group, only messages sent after **@robot** in the group will be received and replied by the robot; group messages without @ will not trigger the robot.
 
-若发消息没反应，先看 **第九节排查** 和 **第十节常见弯路**。
+Summary: When chatting alone with the robot, you can send it directly; when using it in a group, you need to use @robot to post the content.
 
 ---
 
-## 七、配置文件示例
+## 6. Recommended use process (to avoid missing steps)
 
-`config.yaml` 中机器人相关片段示例：
+1. **On the open platform**: Follow Section 3 to complete DingTalk or Feishu application creation, voucher copying, robot activation (DingTalk must select **Stream mode**), permissions and publishing.
+2. **In CyberStrikeAI**: System Settings → Robot Settings → Check the corresponding platform, paste Client ID/App ID, Client Secret/App Secret → Click **Application Configuration**.
+3. **Restart the CyberStrikeAI process** (otherwise the long connection will not be established).
+4. **On DingTalk/Feishu** on your mobile phone: Find the robot (send it directly for individual chats, and @robot for group chats), send "help" or test any content.
+
+If there is no response after sending a message, first read **Section 9 Troubleshooting** and **Section 10 Common Detours**.
+
+---
+
+## 7. Configuration file example
+
+Example of robot-related snippets in `config.yaml`:
 
 ```yaml
 robots:
@@ -160,66 +160,66 @@ robots:
     verify_token: ""
 ```
 
-修改后需**重启应用**，长连接在应用启动时建立。
+After modification, you need to **restart the application**, and the long connection is established when the application starts.
 
 ---
 
-## 八、如何验证是否可用（无需钉钉/飞书客户端）
+## 8. How to verify whether it is available (no DingTalk/Feishu client required)
 
-在未安装钉钉或飞书时，可用**测试接口**验证机器人逻辑是否正常：
+When DingTalk or Feishu are not installed, you can use the **test interface** to verify whether the robot logic is normal:
 
-1. 先登录 CyberStrikeAI Web 端（保证有登录态）。  
-2. 使用 curl 调用测试接口（需携带登录后的 Cookie）：
+1. First log in to the CyberStrikeAI web client (make sure you are logged in).
+2. Use curl to call the test interface (requires the login cookie):
 
 ```bash
-# 将 YOUR_COOKIE 替换为登录后获得的 Cookie（浏览器 F12 → 网络 → 任意请求 → 请求头中的 Cookie）
+# Replace YOUR_COOKIE with the Cookie obtained after logging in (Browser F12 → Network → Any request → Cookie in the request header)
 curl -X POST "http://localhost:8080/api/robot/test" \
   -H "Content-Type: application/json" \
   -H "Cookie: YOUR_COOKIE" \
   -d '{"platform":"dingtalk","user_id":"test_user","text":"帮助"}'
 ```
 
-若返回 JSON 中含有 `"reply":"【CyberStrikeAI 机器人命令】..."`，说明命令处理正常。可再试 `"text":"列表"`、`"text":"当前"` 等。
+If the returned JSON contains `"reply":"[CyberStrikeAI robot command]..."`, it means that the command is processed normally. You can try `"text":"list"`, `"text":"current"`, etc. again.
 
 接口说明：`POST /api/robot/test`（需登录），请求体 `{"platform":"可选","user_id":"可选","text":"必填"}`，响应 `{"reply":"回复内容"}`。
 
 ---
 
-## 九、钉钉发消息没反应时排查
+## 9. Troubleshooting when there is no response when sending messages on DingTalk
 
-按顺序检查：
+Check in order:
 
-0. **笔记本合盖睡眠 / 断网后**  
-   钉钉、飞书均使用长连接收消息，睡眠或断网后连接会断开。程序会**自动重连**（约 5 秒～60 秒内重试）。唤醒或恢复网络后稍等一会儿再发消息；若仍无反应，可重启 CyberStrikeAI 进程。
+0. **Sleep with the laptop lid closed/after disconnecting from the Internet**
+Both DingTalk and Feishu use long connections to receive messages, and the connection will be disconnected after sleep or disconnection. The program will **automatically reconnect** (retry within about 5 seconds to 60 seconds). Wake up or restore the network and wait for a while before sending the message; if there is still no response, you can restart the CyberStrikeAI process.
 
-1. **Client ID / Client Secret 是否与开放平台完全一致**  
-   从「凭证与基础信息」里**复制粘贴**，不要手打。注意数字 **0** 与字母 **o**、数字 **1** 与字母 **l**（例如 `ding9gf9tiozuc504aer` 中间是 **504** 不是 5o4）。
+1. **Client ID / Client Secret is completely consistent with the open platform**
+**Copy and paste** from "Certificates and Basic Information", do not type by hand. Note the number **0** and the letter **o**, the number **1** and the letter **l** (for example, `ding9gf9tiozuc504aer` has **504** in the middle, not 5o4).
 
-2. **是否在保存配置后重启了应用**  
-   机器人长连接在**应用启动时**建立。在 Web 端点击「应用配置」只写入配置文件，**必须重启 CyberStrikeAI 进程**后钉钉连接才会生效。
+2. **Whether the application was restarted after saving the configuration**
+The robot's long connection is established when the application starts. Click "Apply Configuration" on the web side to only write the configuration file. **The CyberStrikeAI process** must be restarted before the DingTalk connection will take effect.
 
-3. **看程序日志**  
-   - 启动后应看到：`钉钉 Stream 正在连接…`、`钉钉 Stream 已启动（无需公网），等待收消息`。  
-   - 若出现 `钉钉 Stream 长连接退出` 且带错误信息，多为 **Client ID / Client Secret 错误**或**开放平台未开通流式接入**。  
-   - 在钉钉里发一条消息后，若有收到，应有日志：`钉钉收到消息`；若没有，说明钉钉未把消息推到本程序（回头检查开放平台「机器人」是否开通、是否选用 **Stream 模式**）。
+3. **Look at the program log**
+- After starting, you should see: `DingTalk Stream is connecting...`, `DingTalk Stream has been started (no public network required), waiting to receive messages`.
+- If `DingTalk Stream long connection exit` appears with an error message, it is mostly a **Client ID / Client Secret error** or **the open platform has not opened streaming access**.
+- After sending a message in DingTalk, if it is received, there should be a log: `DingTalk received message`; if not, it means that DingTalk did not push the message to this program (check back to see if the open platform "robot" is activated and whether **Stream mode** is selected).
 
-4. **开放平台侧**  
-   应用需已**发布**；在「机器人」能力中需开启**流式接入（Stream）** 用于接收消息（仅 HTTP 回调不够）；权限管理里需有机器人接收、发送消息等权限。
-
----
-
-## 十、常见弯路（避免踩坑）
-
-- **用错了机器人类型**：在钉钉**群里**添加的「自定义」机器人（Webhook + 加签）**不能**用来做对话，本程序只支持**开放平台「企业内部应用」**里的机器人。  
-- **只保存没重启**：在 CyberStrikeAI 里改完机器人配置后必须**重启应用**，否则长连接不会建立。  
-- **Client ID 抄错**：开放平台是 `504` 就填 `504`，不要填成 `5o4`；尽量用复制粘贴。  
-- **钉钉只开了 HTTP 回调没开 Stream**：本程序通过 **Stream 长连接**收消息，开放平台里机器人的消息接收方式必须选 **Stream 模式**。  
-- **应用没发布**：开放平台里修改了机器人或权限后，要在「版本管理与发布」里**发布新版本**，否则不生效。
+4. **Open platform side**
+The application needs to be **published**; **Stream access (Stream)** needs to be enabled in the "Robot" capability for receiving messages (only HTTP callbacks are not enough); in permission management, the robot must have permissions to receive and send messages.
 
 ---
 
-## 十一、注意事项
+## 10. Common detours (avoid pitfalls)
 
-- 钉钉、飞书均**仅处理文本消息**；其他类型（如图片、语音）会提示暂不支持或忽略。  
-- 会话与 Web 端共用同一套对话数据：在机器人里创建的对话会在 Web 端「对话」列表中看到，反之亦然。  
-- 机器人执行逻辑与 **`/api/agent-loop/stream`** 一致（含进度回调、过程详情写入数据库），仅不向客户端推送 SSE，最后将完整回复一次性发回钉钉/飞书/企业微信。
+- **Wrong robot type** used: The "custom" robot (Webhook + signature) added in the DingTalk group cannot be used for dialogue. This program only supports robots in the open platform "Enterprise Internal Application"**.
+- **Only save without restarting**: After changing the robot configuration in CyberStrikeAI, you must **restart the application**, otherwise the long connection will not be established.
+- **Client ID copied incorrectly**: If the open platform is `504`, fill in `504` instead of `5o4`; try to copy and paste.
+- **DingTalk only has HTTP callback enabled but not Stream**: This program receives messages through **Stream long connection**. The message receiving method of the robot in the open platform must select **Stream mode**.
+- **The application is not published**: After modifying the robot or permissions in the open platform, you must **publish the new version** in "Version Management and Release", otherwise it will not take effect.
+
+---
+
+## 11. Precautions
+
+- Both DingTalk and Feishu **only process text messages**; other types (such as pictures and voices) will prompt that they are not supported or ignored.
+- Conversations and the web side share the same set of conversation data: conversations created in the bot will be seen in the "Conversations" list on the web side, and vice versa.
+- The robot execution logic is consistent with **`/api/agent-loop/stream`** (including progress callbacks and process details written to the database). It only does not push SSE to the client, and finally sends the complete reply back to DingTalk/Feishu/Enterprise WeChat in one go.

@@ -7,13 +7,13 @@ import (
 	"time"
 )
 
-// ErrTaskCancelled 用户取消任务的错误
+// ErrTaskCancelled Error when user cancels task
 var ErrTaskCancelled = errors.New("agent task cancelled by user")
 
-// ErrTaskAlreadyRunning 会话已有任务正在执行
+// ErrTaskAlreadyRunning The session already has a task being executed.
 var ErrTaskAlreadyRunning = errors.New("agent task already running for conversation")
 
-// AgentTask 描述正在运行的Agent任务
+// AgentTask describes the running Agent task
 type AgentTask struct {
 	ConversationID string    `json:"conversationId"`
 	Message        string    `json:"message,omitempty"`
@@ -23,7 +23,7 @@ type AgentTask struct {
 	cancel func(error)
 }
 
-// CompletedTask 已完成的任务（用于历史记录）
+// CompletedTask Completed task (for history)
 type CompletedTask struct {
 	ConversationID string    `json:"conversationId"`
 	Message        string    `json:"message,omitempty"`
@@ -32,26 +32,26 @@ type CompletedTask struct {
 	Status         string    `json:"status"`
 }
 
-// AgentTaskManager 管理正在运行的Agent任务
+// AgentTaskManager manages running Agent tasks
 type AgentTaskManager struct {
 	mu             sync.RWMutex
 	tasks          map[string]*AgentTask
-	completedTasks []*CompletedTask // 最近完成的任务历史
-	maxHistorySize int              // 最大历史记录数
-	historyRetention time.Duration  // 历史记录保留时间
+	completedTasks []*CompletedTask // History of recently completed tasks
+	maxHistorySize int              // Maximum number of historical records
+	historyRetention time.Duration  // History retention time
 }
 
-// NewAgentTaskManager 创建任务管理器
+// NewAgentTaskManager creates a task manager
 func NewAgentTaskManager() *AgentTaskManager {
 	return &AgentTaskManager{
 		tasks:            make(map[string]*AgentTask),
 		completedTasks:   make([]*CompletedTask, 0),
-		maxHistorySize:   50,                    // 最多保留50条历史记录
-		historyRetention: 24 * time.Hour,       // 保留24小时
+		maxHistorySize:   50,                    // Keep up to 50 historical records
+		historyRetention: 24 * time.Hour,       // Keep for 24 hours
 	}
 }
 
-// StartTask 注册并开始一个新的任务
+// StartTask registers and starts a new task
 func (m *AgentTaskManager) StartTask(conversationID, message string, cancel context.CancelCauseFunc) (*AgentTask, error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
@@ -76,7 +76,7 @@ func (m *AgentTaskManager) StartTask(conversationID, message string, cancel cont
 	return task, nil
 }
 
-// CancelTask 取消指定会话的任务
+// CancelTask ​​Cancels the task of the specified session
 func (m *AgentTaskManager) CancelTask(conversationID string, cause error) (bool, error) {
 	m.mu.Lock()
 	task, exists := m.tasks[conversationID]
@@ -85,7 +85,7 @@ func (m *AgentTaskManager) CancelTask(conversationID string, cause error) (bool,
 		return false, nil
 	}
 
-	// 如果已经处于取消流程，直接返回
+	// If you are already in the cancellation process, return directly
 	if task.Status == "cancelling" {
 		m.mu.Unlock()
 		return false, nil
@@ -104,7 +104,7 @@ func (m *AgentTaskManager) CancelTask(conversationID string, cause error) (bool,
 	return true, nil
 }
 
-// UpdateTaskStatus 更新任务状态但不删除任务（用于在发送事件前更新状态）
+// UpdateTaskStatus updates the task status but does not delete the task (used to update the status before sending the event)
 func (m *AgentTaskManager) UpdateTaskStatus(conversationID string, status string) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
@@ -119,7 +119,7 @@ func (m *AgentTaskManager) UpdateTaskStatus(conversationID string, status string
 	}
 }
 
-// FinishTask 完成任务并从管理器中移除
+// FinishTask Completes the task and removes it from the manager
 func (m *AgentTaskManager) FinishTask(conversationID string, finalStatus string) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
@@ -133,7 +133,7 @@ func (m *AgentTaskManager) FinishTask(conversationID string, finalStatus string)
 		task.Status = finalStatus
 	}
 
-	// 保存到历史记录
+	// Save to history
 	completedTask := &CompletedTask{
 		ConversationID: task.ConversationID,
 		Message:        task.Message,
@@ -142,22 +142,22 @@ func (m *AgentTaskManager) FinishTask(conversationID string, finalStatus string)
 		Status:          finalStatus,
 	}
 	
-	// 添加到历史记录
+	// Add to history
 	m.completedTasks = append(m.completedTasks, completedTask)
 	
-	// 清理过期和过多的历史记录
+	// Clean up expired and excessive history
 	m.cleanupHistory()
 
-	// 从运行任务中移除
+	// Remove from running tasks
 	delete(m.tasks, conversationID)
 }
 
-// cleanupHistory 清理过期的历史记录
+// CleanupHistory cleans up expired history records
 func (m *AgentTaskManager) cleanupHistory() {
 	now := time.Now()
 	cutoffTime := now.Add(-m.historyRetention)
 	
-	// 过滤掉过期的记录
+	// Filter out expired records
 	validTasks := make([]*CompletedTask, 0, len(m.completedTasks))
 	for _, task := range m.completedTasks {
 		if task.CompletedAt.After(cutoffTime) {
@@ -165,10 +165,10 @@ func (m *AgentTaskManager) cleanupHistory() {
 		}
 	}
 	
-	// 如果仍然超过最大数量，只保留最新的
+	// If it still exceeds the maximum number, only keep the latest
 	if len(validTasks) > m.maxHistorySize {
-		// 按完成时间排序，保留最新的
-		// 由于是追加的，最新的在最后，所以直接取最后N个
+		// Sort by completion time, keep the latest
+		// Since it is appended, the latest one is at the end, so just take the last N ones.
 		start := len(validTasks) - m.maxHistorySize
 		validTasks = validTasks[start:]
 	}
@@ -176,7 +176,7 @@ func (m *AgentTaskManager) cleanupHistory() {
 	m.completedTasks = validTasks
 }
 
-// GetActiveTasks 返回所有正在运行的任务
+// GetActiveTasks returns all running tasks
 func (m *AgentTaskManager) GetActiveTasks() []*AgentTask {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
@@ -193,14 +193,14 @@ func (m *AgentTaskManager) GetActiveTasks() []*AgentTask {
 	return result
 }
 
-// GetCompletedTasks 返回最近完成的任务历史
+// GetCompletedTasks returns the history of recently completed tasks
 func (m *AgentTaskManager) GetCompletedTasks() []*CompletedTask {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 	
-	// 清理过期记录（只读锁，不影响其他操作）
-	// 注意：这里不能直接调用cleanupHistory，因为需要写锁
-	// 所以返回时过滤过期记录
+	// Clean up expired records (read-only lock, does not affect other operations)
+	// Note: cleanupHistory cannot be called directly here because a write lock is required.
+	// So filter expired records when returning
 	now := time.Now()
 	cutoffTime := now.Add(-m.historyRetention)
 	
@@ -211,13 +211,13 @@ func (m *AgentTaskManager) GetCompletedTasks() []*CompletedTask {
 		}
 	}
 	
-	// 按完成时间倒序排序（最新的在前）
-	// 由于是追加的，最新的在最后，需要反转
+	// Sort by completion time in descending order (newest first)
+	// Since it is appended, the latest one is at the end and needs to be reversed.
 	for i, j := 0, len(result)-1; i < j; i, j = i+1, j-1 {
 		result[i], result[j] = result[j], result[i]
 	}
 	
-	// 限制返回数量
+	// Limit the number of returns
 	if len(result) > m.maxHistorySize {
 		result = result[:m.maxHistorySize]
 	}

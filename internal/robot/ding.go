@@ -17,12 +17,12 @@ import (
 )
 
 const (
-	dingReconnectInitial = 5 * time.Second  // 首次重连间隔
-	dingReconnectMax     = 60 * time.Second // 最大重连间隔
+	dingReconnectInitial = 5 * time.Second  // First reconnection interval
+	dingReconnectMax     = 60 * time.Second // Maximum reconnection interval
 )
 
-// StartDing 启动钉钉 Stream 长连接（无需公网），收到消息后调用 handler 并通过 SessionWebhook 回复。
-// 断线（如笔记本睡眠、网络中断）后会自动重连；ctx 被取消时退出，便于配置变更时重启。
+// StartDing starts the DingTalk Stream long connection (no public network required). After receiving the message, it calls the handler and replies through SessionWebhook.
+// It will automatically reconnect after being disconnected (such as laptop sleep, network interruption); exit when ctx is canceled to facilitate restarting when configuration changes.
 func StartDing(ctx context.Context, cfg config.RobotDingtalkConfig, h MessageHandler, logger *zap.Logger) {
 	if !cfg.Enabled || cfg.ClientID == "" || cfg.ClientSecret == "" {
 		return
@@ -30,7 +30,7 @@ func StartDing(ctx context.Context, cfg config.RobotDingtalkConfig, h MessageHan
 	go runDingLoop(ctx, cfg, h, logger)
 }
 
-// runDingLoop 循环维持钉钉长连接：断开且 ctx 未取消时按退避间隔重连。
+// The runDingLoop loop maintains the long connection of DingTalk: when disconnected and ctx is not canceled, the connection is reconnected according to the backoff interval.
 func runDingLoop(ctx context.Context, cfg config.RobotDingtalkConfig, h MessageHandler, logger *zap.Logger) {
 	backoff := dingReconnectInitial
 	for {
@@ -42,20 +42,20 @@ func runDingLoop(ctx context.Context, cfg config.RobotDingtalkConfig, h MessageH
 					return nil, nil
 				}).OnEventReceived),
 		)
-		logger.Info("钉钉 Stream 正在连接…", zap.String("client_id", cfg.ClientID))
+		logger.Info("DingTalk Stream is connecting...", zap.String("client_id", cfg.ClientID))
 		err := streamClient.Start(ctx)
 		if ctx.Err() != nil {
-			logger.Info("钉钉 Stream 已按配置重启关闭")
+			logger.Info("DingTalk Stream has been restarted and shut down as configured.")
 			return
 		}
 		if err != nil {
-			logger.Warn("钉钉 Stream 长连接断开（如睡眠/断网），将自动重连", zap.Error(err), zap.Duration("retry_after", backoff))
+			logger.Warn("If the DingTalk Stream long-term connection is disconnected (such as sleep/disconnection), it will automatically reconnect.", zap.Error(err), zap.Duration("retry_after", backoff))
 		}
 		select {
 		case <-ctx.Done():
 			return
 		case <-time.After(backoff):
-			// 下次重连间隔递增，上限 60 秒，避免频繁重试
+			// The next reconnection interval increases, with an upper limit of 60 seconds, to avoid frequent retries.
 			if backoff < dingReconnectMax {
 				backoff *= 2
 				if backoff > dingReconnectMax {
@@ -89,16 +89,16 @@ func handleDingMessage(ctx context.Context, msg *chatbot.BotCallbackDataModel, h
 		}
 	}
 	if content == "" {
-		logger.Debug("钉钉消息内容为空，已忽略", zap.String("msgtype", msg.Msgtype))
+		logger.Debug("DingTalk message content is empty and ignored", zap.String("msgtype", msg.Msgtype))
 		return
 	}
-	logger.Info("钉钉收到消息", zap.String("sender", msg.SenderId), zap.String("content", content))
+	logger.Info("DingTalk received the message", zap.String("sender", msg.SenderId), zap.String("content", content))
 	userID := msg.SenderId
 	if userID == "" {
 		userID = msg.ConversationId
 	}
 	reply := h.HandleMessage("dingtalk", userID, content)
-	// 使用 markdown 类型以便正确展示标题、列表、代码块等格式
+	// Use the markdown type to correctly display titles, lists, code blocks, etc.
 	title := reply
 	if idx := strings.IndexAny(reply, "\n"); idx > 0 {
 		title = strings.TrimSpace(reply[:idx])
@@ -107,7 +107,7 @@ func handleDingMessage(ctx context.Context, msg *chatbot.BotCallbackDataModel, h
 		title = title[:50] + "…"
 	}
 	if title == "" {
-		title = "回复"
+		title = "Reply"
 	}
 	body := map[string]interface{}{
 		"msgtype": "markdown",
@@ -119,19 +119,19 @@ func handleDingMessage(ctx context.Context, msg *chatbot.BotCallbackDataModel, h
 	bodyBytes, _ := json.Marshal(body)
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, msg.SessionWebhook, bytes.NewReader(bodyBytes))
 	if err != nil {
-		logger.Warn("钉钉构造回复请求失败", zap.Error(err))
+		logger.Warn("DingTalk structure reply request failed", zap.Error(err))
 		return
 	}
 	req.Header.Set("Content-Type", "application/json")
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		logger.Warn("钉钉回复请求失败", zap.Error(err))
+		logger.Warn("DingTalk reply request failed", zap.Error(err))
 		return
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
-		logger.Warn("钉钉回复非 200", zap.Int("status", resp.StatusCode))
+		logger.Warn("DingTalk reply is not 200", zap.Int("status", resp.StatusCode))
 		return
 	}
-	logger.Debug("钉钉回复成功", zap.String("content_preview", reply))
+	logger.Debug("DingTalk reply successfully", zap.String("content_preview", reply))
 }
