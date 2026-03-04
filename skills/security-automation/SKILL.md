@@ -1,58 +1,58 @@
 ---
 name: security-automation
-description: 安全自动化的专业技能和方法论
+Description: Professional skills and methodologies for security automation
 version: 1.0.0
 ---
 
-# 安全自动化
+#securityautomation
 
-## 概述
+## Overview
 
-安全自动化是提高安全运营效率的重要手段。本技能提供安全自动化的方法、工具和最佳实践。
+Security automation is an important means to improve security operation efficiency. This skill provides methods, tools, and best practices for security automation.
 
-## 自动化场景
+## Automation scenario
 
-### 1. 漏洞扫描
+### 1. Vulnerability Scanning
 
-**自动化扫描：**
-- 定期扫描
-- CI/CD集成
-- 结果分析
-- 报告生成
+**Automated scanning:**
+- Regular scan
+- CI/CD integration
+- Result analysis
+- Report generation
 
-### 2. 安全测试
+### 2. Security testing
 
-**自动化测试：**
-- 单元测试
-- 集成测试
-- 安全测试
-- 回归测试
+**Automated testing:**
+- unit testing
+- Integration testing
+- Security testing
+- Regression testing
 
-### 3. 事件响应
+### 3. Incident response
 
-**自动化响应：**
-- 事件检测
-- 自动遏制
-- 通知告警
-- 证据收集
+**Automated response:**
+- Event detection
+- Automatic containment
+- Notification alarm
+- Evidence collection
 
-### 4. 合规检查
+### 4. Compliance Check
 
-**自动化合规：**
-- 配置检查
-- 策略验证
-- 报告生成
-- 修复建议
+**Automated Compliance:**
+- Configuration check
+- Strategy verification
+- Report generation
+- Fix suggestions
 
-## 工具和框架
+## Tools and Frameworks
 
-### 漏洞扫描自动化
+### Vulnerability scanning automation
 
-**使用Nessus API：**
+**Using Nessus API:**
 ```python
 import requests
 
-# 创建扫描
+# Create scan
 def create_scan(target, scan_name):
     url = "https://nessus:8834/scans"
     headers = {"X-ApiKeys": "access_key:secret_key"}
@@ -66,7 +66,7 @@ def create_scan(target, scan_name):
     response = requests.post(url, json=data, headers=headers)
     return response.json()
 
-# 启动扫描
+# Start scanning
 def launch_scan(scan_id):
     url = f"https://nessus:8834/scans/{scan_id}/launch"
     headers = {"X-ApiKeys": "access_key:secret_key"}
@@ -74,17 +74,17 @@ def launch_scan(scan_id):
     return response.json()
 ```
 
-**使用OpenVAS API：**
+**Using OpenVAS API:**
 ```python
 from gvm.connections import UnixSocketConnection
 from gvm.protocols.gmp import Gmp
 
-# 连接OpenVAS
+# Connect to OpenVAS
 connection = UnixSocketConnection()
 gmp = Gmp(connection)
 gmp.authenticate('username', 'password')
 
-# 创建扫描任务
+#Create scan task
 target = gmp.create_target(name='target', hosts=['192.168.1.0/24'])
 config = gmp.get_configs()[0]
 scanner = gmp.get_scanners()[0]
@@ -96,11 +96,11 @@ task = gmp.create_task(
     scanner_id=scanner['id']
 )
 
-# 启动扫描
+# Start scanning
 gmp.start_task(task['id'])
 ```
 
-### CI/CD集成
+### CI/CD integration
 
 **Jenkins Pipeline：**
 ```groovy
@@ -153,31 +153,31 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 ```
 
-### 安全测试自动化
+### Security test automation
 
-**使用OWASP ZAP：**
+**Using OWASP ZAP:**
 ```python
 from zapv2 import ZAPv2
 
-# 启动ZAP
+# Start ZAP
 zap = ZAPv2(proxies={'http': 'http://127.0.0.1:8080'})
 
-# 开始扫描
+# Start scanning
 zap.urlopen('http://target.com')
 zap.spider.scan('http://target.com')
 while int(zap.spider.status()) < 100:
     time.sleep(1)
 
-# 主动扫描
+# Active scan
 zap.ascan.scan('http://target.com')
 while int(zap.ascan.status()) < 100:
     time.sleep(1)
 
-# 获取结果
+# Get results
 alerts = zap.core.alerts()
 ```
 
-**使用Burp Suite：**
+**Using Burp Suite:**
 ```python
 from burp import IBurpExtender, IScannerCheck
 
@@ -189,21 +189,21 @@ class BurpExtender(IBurpExtender, IScannerCheck):
         callbacks.registerScannerCheck(self)
     
     def doPassiveScan(self, baseRequestResponse):
-        # 被动扫描逻辑
+# Passive scanning logic
         return None
     
     def doActiveScan(self, baseRequestResponse, insertionPoint):
-        # 主动扫描逻辑
+# Active scanning logic
         return None
 ```
 
-### 事件响应自动化
+### Incident response automation
 
-**使用Splunk：**
+**Using Splunk:**
 ```python
 import splunklib.client as client
 
-# 连接Splunk
+# Connect to Splunk
 service = client.connect(
     host='splunk.example.com',
     port=8089,
@@ -211,27 +211,27 @@ service = client.connect(
     password='password'
 )
 
-# 搜索安全事件
+#Search for security events
 search_query = 'index=security event_type="malware"'
 kwargs = {"earliest_time": "-1h", "latest_time": "now"}
 search = service.jobs.create(search_query, **kwargs)
 
-# 处理结果
+# Process results
 for result in search:
     if result['severity'] == 'high':
-        # 自动响应
+# Automatic response
         send_alert(result)
         isolate_system(result['host'])
 ```
 
-**使用ELK Stack：**
+**Using ELK Stack:**
 ```python
 from elasticsearch import Elasticsearch
 
-# 连接Elasticsearch
+# Connect to Elasticsearch
 es = Elasticsearch(['localhost:9200'])
 
-# 搜索安全事件
+#Search for security events
 query = {
     "query": {
         "match": {
@@ -242,17 +242,17 @@ query = {
 
 results = es.search(index="security", body=query)
 
-# 自动响应
+# Automatic response
 for hit in results['hits']['hits']:
     if hit['_source']['severity'] == 'critical':
-        # 自动遏制
+# automatic containment
         block_ip(hit['_source']['src_ip'])
         send_alert(hit['_source'])
 ```
 
-## 自动化脚本
+## Automation script
 
-### 漏洞扫描脚本
+### Vulnerability scanning script
 
 ```python
 #!/usr/bin/env python3
@@ -262,7 +262,7 @@ import smtplib
 from email.mime.text import MIMEText
 
 def run_nmap_scan(target):
-    """运行Nmap扫描"""
+"""Run Nmap scan"""
     result = subprocess.run(
         ['nmap', '--script', 'vuln', '-oJ', '-', target],
         capture_output=True,
@@ -271,7 +271,7 @@ def run_nmap_scan(target):
     return json.loads(result.stdout)
 
 def analyze_results(results):
-    """分析扫描结果"""
+"""Analyze scan results"""
     vulnerabilities = []
     for host in results.get('hosts', []):
         for port in host.get('ports', []):
@@ -285,10 +285,10 @@ def analyze_results(results):
     return vulnerabilities
 
 def send_report(vulnerabilities):
-    """发送报告"""
+"""Send report"""
     if vulnerabilities:
         msg = MIMEText(f"发现 {len(vulnerabilities)} 个漏洞")
-        msg['Subject'] = '漏洞扫描报告'
+Msg['Subject'] = 'Vulnerability Scan Report'
         msg['From'] = 'security@example.com'
         msg['To'] = 'admin@example.com'
         
@@ -303,7 +303,7 @@ if __name__ == '__main__':
     send_report(vulnerabilities)
 ```
 
-### 配置检查脚本
+### Configuration check script
 
 ```python
 #!/usr/bin/env python3
@@ -311,13 +311,13 @@ import boto3
 import json
 
 def check_s3_buckets():
-    """检查S3存储桶安全配置"""
+"""Check S3 bucket security configuration"""
     s3 = boto3.client('s3')
     buckets = s3.list_buckets()
     
     issues = []
     for bucket in buckets['Buckets']:
-        # 检查公开访问
+# Check for public access
         try:
             acl = s3.get_bucket_acl(Bucket=bucket['Name'])
             for grant in acl.get('Grants', []):
@@ -329,7 +329,7 @@ def check_s3_buckets():
         except:
             pass
         
-        # 检查加密
+# Check encryption
         try:
             encryption = s3.get_bucket_encryption(Bucket=bucket['Name'])
         except:
@@ -345,39 +345,39 @@ if __name__ == '__main__':
     print(json.dumps(issues, indent=2))
 ```
 
-## 最佳实践
+## Best Practices
 
-### 1. 自动化策略
+### 1. Automation strategy
 
-- 识别可自动化场景
-- 制定自动化计划
-- 逐步实施
-- 持续改进
+- Identify scenarios that can be automated
+- Develop an automation plan
+- Gradual implementation
+- Continuous improvement
 
-### 2. 工具选择
+### 2. Tool selection
 
-- 评估工具功能
-- 考虑集成性
-- 考虑成本
-- 测试验证
+- Assessment tool functionality
+- Consider integration
+- Consider the cost
+- Test verification
 
-### 3. 流程设计
+### 3. Process design
 
-- 明确流程步骤
-- 定义触发条件
-- 设置异常处理
-- 记录操作日志
+- Clarify process steps
+- Define trigger conditions
+- Set up exception handling
+- Record operation logs
 
-### 4. 监控和维护
+### 4. Monitoring and Maintenance
 
-- 监控自动化任务
-- 定期检查结果
-- 更新规则和脚本
-- 优化性能
+- Monitor automated tasks
+- Regularly check results
+- Updated rules and scripts
+- Optimize performance
 
-## 注意事项
+## Notes
 
-- 确保自动化准确性
-- 设置适当的权限
-- 保护自动化凭证
-- 定期审查自动化规则
+- Ensure automation accuracy
+- Set appropriate permissions
+- Protect automation credentials
+- Regularly review automation rules

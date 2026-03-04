@@ -1,60 +1,60 @@
 ---
 name: secure-code-review
-description: 安全代码审查的专业技能和方法论
+Description: Professional skills and methodologies for secure code review
 version: 1.0.0
 ---
 
-# 安全代码审查
+# Security code review
 
-## 概述
+## Overview
 
-安全代码审查是识别代码中安全漏洞的重要方法。本技能提供安全代码审查的方法、工具和最佳实践。
+Security code reviews are an important way to identify security vulnerabilities in your code. This skill provides methods, tools, and best practices for secure code review.
 
-## 审查范围
+## Scope of review
 
-### 1. 输入验证
+### 1. Input verification
 
-**检查项目：**
-- 用户输入验证
-- 参数验证
-- 数据过滤
-- 边界检查
+**Check items:**
+- User input validation
+- Parameter validation
+- Data filtering
+- Boundary checking
 
-### 2. 输出编码
+### 2. Output encoding
 
-**检查项目：**
-- XSS防护
-- 输出编码
-- 内容安全策略
-- 响应头设置
+**Check items:**
+- XSS protection
+- Output encoding
+- Content security policy
+- Response header settings
 
-### 3. 认证授权
+### 3. Authentication and authorization
 
-**检查项目：**
-- 认证机制
-- 会话管理
-- 权限控制
-- 密码处理
+**Check items:**
+- Authentication mechanism
+- Session management
+- Permission control
+- Password handling
 
-### 4. 加密和密钥
+### 4. Encryption and keys
 
-**检查项目：**
-- 数据加密
-- 密钥管理
-- 哈希算法
-- 随机数生成
+**Check items:**
+- Data encryption
+- Key management
+- Hash algorithm
+- Random number generation
 
-## 审查方法
+## Review method
 
-### 1. 静态分析
+### 1. Static analysis
 
-**使用SAST工具：**
+**Using SAST Tools:**
 ```bash
 # SonarQube
 sonar-scanner
 
 # Checkmarx
-# 使用Web界面
+# Use the web interface
 
 # Fortify
 sourceanalyzer -b project build.sh
@@ -64,23 +64,23 @@ sourceanalyzer -b project -scan
 semgrep --config=auto .
 ```
 
-### 2. 手动审查
+### 2. Manual review
 
-**审查清单：**
-- [ ] 输入验证
-- [ ] 输出编码
-- [ ] SQL注入
-- [ ] XSS漏洞
-- [ ] 认证授权
-- [ ] 加密使用
-- [ ] 错误处理
-- [ ] 日志记录
+**Review Checklist:**
+- [ ] input validation
+- [ ] output encoding
+- [ ] SQL injection
+- [ ] XSS vulnerability
+- [ ] Authentication and authorization
+- [ ] encryption used
+- [ ] error handling
+- [ ] logging
 
-### 3. 代码模式识别
+### 3. Code pattern recognition
 
-**危险函数：**
+**Dangerous function:**
 ```python
-# Python危险函数
+# Python dangerous functions
 eval()
 exec()
 pickle.loads()
@@ -89,32 +89,32 @@ subprocess.call()
 ```
 
 ```java
-// Java危险函数
+// Java dangerous functions
 Runtime.exec()
 ProcessBuilder()
 Class.forName()
 ```
 
 ```php
-// PHP危险函数
+// PHP dangerous functions
 eval()
 exec()
 system()
 passthru()
 ```
 
-## 常见漏洞模式
+## Common vulnerability patterns
 
-### SQL注入
+### SQL injection
 
-**危险代码：**
+**Danger code:**
 ```java
 String query = "SELECT * FROM users WHERE id = " + userId;
 Statement stmt = connection.createStatement();
 ResultSet rs = stmt.executeQuery(query);
 ```
 
-**安全代码：**
+**Security Code:**
 ```java
 String query = "SELECT * FROM users WHERE id = ?";
 PreparedStatement stmt = connection.prepareStatement(query);
@@ -122,45 +122,45 @@ stmt.setInt(1, userId);
 ResultSet rs = stmt.executeQuery();
 ```
 
-### XSS漏洞
+### XSS vulnerability
 
-**危险代码：**
+**Danger code:**
 ```javascript
 document.innerHTML = userInput;
 element.innerHTML = "<div>" + userInput + "</div>";
 ```
 
-**安全代码：**
+**Security Code:**
 ```javascript
 element.textContent = userInput;
 element.setAttribute("data-value", userInput);
-// 或使用编码库
+// Or use encoding library
 element.innerHTML = escapeHtml(userInput);
 ```
 
-### 命令注入
+### Command injection
 
-**危险代码：**
+**Danger code:**
 ```python
 import os
 os.system("ping " + user_input)
 ```
 
-**安全代码：**
+**Security Code:**
 ```python
 import subprocess
 subprocess.run(["ping", "-c", "1", validated_input])
 ```
 
-### 路径遍历
+### Path traversal
 
-**危险代码：**
+**Danger code:**
 ```java
 String filePath = "/uploads/" + fileName;
 File file = new File(filePath);
 ```
 
-**安全代码：**
+**Security Code:**
 ```java
 String basePath = "/uploads/";
 String fileName = Paths.get(fileName).getFileName().toString();
@@ -171,29 +171,29 @@ if (!file.getCanonicalPath().startsWith(basePath)) {
 }
 ```
 
-### 硬编码密钥
+### Hardcoded key
 
-**危险代码：**
+**Danger code:**
 ```java
 String apiKey = "1234567890abcdef";
 String password = "admin123";
 ```
 
-**安全代码：**
+**Security Code:**
 ```java
 String apiKey = System.getenv("API_KEY");
 String password = keyStore.getPassword("db_password");
 ```
 
-## 工具使用
+## Tool usage
 
 ### SonarQube
 
 ```bash
-# 启动SonarQube
+# Start SonarQube
 docker run -d -p 9000:9000 sonarqube
 
-# 运行扫描
+# Run scan
 sonar-scanner \
   -Dsonar.projectKey=myproject \
   -Dsonar.sources=. \
@@ -203,84 +203,84 @@ sonar-scanner \
 ### Semgrep
 
 ```bash
-# 安装
+# Install
 pip install semgrep
 
-# 运行扫描
+# Run scan
 semgrep --config=auto .
 
-# 使用规则
+# Usage rules
 semgrep --config=p/security-audit .
 ```
 
 ### CodeQL
 
 ```bash
-# 创建数据库
+#Create database
 codeql database create database --language=java --source-root=.
 
-# 运行查询
+# Run query
 codeql database analyze database security-and-quality.qls --format=sarif-latest
 ```
 
-## 审查清单
+## Review Checklist
 
-### 输入验证
-- [ ] 所有用户输入都经过验证
-- [ ] 使用白名单验证
-- [ ] 验证数据类型和范围
-- [ ] 处理特殊字符
+### Input validation
+- [ ] All user input is validated
+- [ ] Use whitelist verification
+- [ ] Validate data type and range
+- [ ] handles special characters
 
-### 输出编码
-- [ ] HTML输出编码
-- [ ] URL编码
-- [ ] JavaScript编码
-- [ ] SQL参数化
+### Output encoding
+- [ ] HTML output encoding
+- [ ] URL encoding
+- [ ] JavaScript encoding
+- [ ] SQL parameterization
 
-### 认证授权
-- [ ] 强密码策略
-- [ ] 安全的会话管理
-- [ ] 权限验证
-- [ ] 多因素认证
+### Authentication and authorization
+- [ ] Strong password policy
+- [ ] Secure session management
+- [ ] Permission verification
+- [ ] Multi-factor authentication
 
-### 加密
-- [ ] 使用强加密算法
-- [ ] 密钥安全存储
-- [ ] 传输加密
-- [ ] 存储加密
+### Encryption
+- [ ] Use strong encryption algorithms
+- [ ] Key secure storage
+- [ ] transmission encryption
+- [ ] Storage Encryption
 
-### 错误处理
-- [ ] 不泄露敏感信息
-- [ ] 统一错误响应
-- [ ] 记录错误日志
-- [ ] 异常处理
+### Error handling
+- [ ] Do not disclose sensitive information
+- [ ] Unified error response
+- [ ] Log errors
+- [ ] Exception handling
 
-## 最佳实践
+## Best Practices
 
-### 1. 安全编码规范
+### 1. Secure Coding Standards
 
-- 遵循OWASP Top 10
-- 使用安全编码指南
-- 代码审查流程
-- 安全培训
+- Follow OWASP Top 10
+- Use secure coding guidelines
+- Code review process
+- Safety training
 
-### 2. 自动化工具
+### 2. Automation tools
 
-- 集成SAST工具
-- CI/CD安全检查
-- 自动化扫描
-- 结果分析
+- Integrated SAST tools
+- CI/CD security check
+- Automated scanning
+- Result analysis
 
-### 3. 代码审查流程
+### 3. Code review process
 
-- 同行审查
-- 安全专家审查
-- 定期审查
-- 记录问题
+- Peer review
+- Reviewed by security experts
+- Regular review
+- Log issues
 
-## 注意事项
+## Notes
 
-- 结合工具和人工审查
-- 关注业务逻辑漏洞
-- 定期更新工具规则
-- 建立安全编码文化
+- Combine tools and human review
+- Pay attention to business logic vulnerabilities
+- Regularly update tool rules
+- Build a safe coding culture

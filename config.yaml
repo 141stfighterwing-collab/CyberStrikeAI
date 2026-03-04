@@ -1,157 +1,157 @@
 # ============================================
-# CyberStrikeAI 配置文件
+# CyberStrikeAI configuration file
 # ============================================
-# 本配置文件支持通过 Web 界面进行可视化配置
-# 点击右上角"设置"按钮即可修改配置
-# ============================================
-
-# ============================================
-# 系统设置
+# This configuration file supports visual configuration through the web interface
+# Click the "Set up" button in the upper right corner to modify the configuration
 # ============================================
 
-# 前端显示的版本号（可选，不填则显示默认版本）
+# ============================================
+# System settings
+# ============================================
+
+# The version number displayed on the front end (optional, if left blank, the default version will be displayed)
 version: "v1.3.16"
 
-# 服务器配置
+# Server configuration
 server:
-  host: 0.0.0.0 # 监听地址，0.0.0.0 表示监听所有网络接口
-  port: 8080     # HTTP 服务端口，可通过浏览器访问 http://localhost:8080
+  host: 0.0.0.0 # Listening address, 0.0.0.0 means listening on all network interfaces
+  port: 8080     # HTTP service port, accessible via browser http://localhost:8080
 
-# 认证配置
+# Authentication configuration
 auth:
-  password:  # Web 登录密码，请修改为强密码
-  session_duration_hours: 12          # 登录有效期（小时），超时后需重新登录
+  password:  # Web login password, please change it to a strong password
+  session_duration_hours: 12          # Login validity period (hours), you need to log in again after timeout
 
-# 日志配置
+# Log configuration
 log:
-  level: info   # 日志级别: debug(调试), info(信息), warn(警告), error(错误)
-  output: stdout # 日志输出位置: stdout(标准输出), stderr(标准错误), 或文件路径
+  level: info   # Log level: debug (debug), info (information), warn (warning), error (error)
+  output: stdout # Log output location: stdout (standard output), stderr (standard error), or file path
 
 # ============================================
-# 对话相关配置
+# Conversation related configuration
 # ============================================
 
-# AI 模型配置（支持 OpenAI 兼容 API）
-# 必填项：api_key, base_url, model 必须填写才能正常运行
-# 支持的 API 服务商：
+# AI model configuration (supports OpenAI compatible API)
+# Required items: api_key, base_url, model must be filled in for normal operation
+#Supported API service providers:
 #   - OpenAI: https://api.openai.com/v1
 #   - DeepSeek: https://api.deepseek.com/v1
-#   - 其他兼容 OpenAI 协议的 API
-# 常用模型: gpt-4, gpt-3.5-turbo, deepseek-chat, claude-3-opus 等
+# - Other APIs compatible with the OpenAI protocol
+# Commonly used models: gpt-4, gpt-3.5-turbo, deepseek-chat, claude-3-opus, etc.
 openai:
-  base_url: https://api.deepseek.com/v1 # API 基础 URL（必填）
-  api_key: sk-xxxx                       # API 密钥（必填）
-  model: deepseek-chat                   # 模型名称（必填）
-  max_total_tokens: 120000              # LLM 相关上下文的最大 Token 数限制（内存压缩和攻击链构建会共用此配置）
+  base_url: https://api.deepseek.com/v1 # API base URL (required)
+  api_key: sk-xxxx                       # API key (required)
+  model: deepseek-chat                   # Model name (required)
+  max_total_tokens: 120000              # Limit on the maximum number of tokens in LLM-related context (memory compression and attack chain construction will share this configuration)
 
 # ============================================
-# 信息收集（FOFA）配置（可选）
+# Information collection (FOFA) configuration (optional)
 # ============================================
-# 用于「信息收集」页面调用 FOFA API（后端代理，避免前端暴露 key）
-# 也可通过环境变量配置：FOFA_EMAIL / FOFA_API_KEY（优先级更高）
+# Used for the "Information Collection" page to call FOFA API (backend proxy to avoid front-end key exposure)
+# It can also be configured through environment variables: FOFA_EMAIL / FOFA_API_KEY (higher priority)
 fofa:
-  base_url: "https://fofa.info/api/v1/search/all" # 可选，留空则使用默认
-  email: ""   # FOFA 账号邮箱（可选，建议在系统设置中填写）
-  api_key: "" # FOFA API Key（可选，建议在系统设置中填写）
+  base_url: "https://fofa.info/api/v1/search/all" # Optional, leave blank to use default
+  email: ""   # FOFA account email (optional, recommended to be filled in in system settings)
+  api_key: "" # FOFA API Key (optional, recommended to be filled in in system settings)
 
-# Agent 配置
-# 达到最大迭代次数时，AI 会自动总结测试结果
+#Agent configuration
+# When the maximum number of iterations is reached, AI will automatically summarize the test results
 agent:
-  max_iterations: 120           # 最大迭代次数，AI 代理最多执行多少轮工具调用
-  large_result_threshold: 102400 # 大结果阈值（字节），默认50KB，超过此大小会自动保存到存储
-  result_storage_dir: tmp        # 结果存储目录，大结果会保存在此目录下
+  max_iterations: 120           # Maximum number of iterations, how many rounds of tool calls the AI ​​agent can execute at most
+  large_result_threshold: 102400 # Large result threshold (bytes), default 50KB, exceeding this size will automatically be saved to storage
+  result_storage_dir: tmp        # The result storage directory, large results will be saved in this directory
 
-# 数据库配置
+# Database configuration
 database:
-  path: data/conversations.db    # SQLite 数据库文件路径，用于存储对话历史和消息
-  knowledge_db_path: data/knowledge.db # 知识库数据库文件路径（可选，为空则使用会话数据库），用于存储知识库项和向量嵌入，可独立复制和复用
+  path: data/conversations.db    # SQLite database file path to store conversation history and messages
+  knowledge_db_path: data/knowledge.db # Knowledge base database file path (optional, if empty uses session database), used to store knowledge base items and vector embeddings, which can be copied and reused independently
 
 # ============================================
-# 任务管理相关配置
+# Task management related configurations
 # ============================================
-# （配置项已包含在对话相关配置中）
+# (Configuration items are included in the dialog-related configuration)
 
 # ============================================
-# 漏洞管理相关配置
+# Vulnerability management related configurations
 # ============================================
 
-# 安全工具配置
-# 系统会从该目录加载所有 .yaml 格式的工具配置文件
-# 推荐方式：在 tools/ 目录下为每个工具创建独立的配置文件
+# Security tool configuration
+# The system will load all tool configuration files in .yaml format from this directory
+# Recommended method: Create independent configuration files for each tool in the tools/ directory
 security:
-  tools_dir: tools # 工具配置文件目录（相对于配置文件所在目录）
-  # 工具描述模式：加载 tools 下工具时，暴露给 AI/API 使用的描述来源
-  #   short - 优先使用 short_description（简短描述，省 token），为空时用 description
-  #   full  - 使用 description（详细描述）
+  tools_dir: tools # Tool configuration file directory (relative to the directory where the configuration file is located)
+# Tool description mode: When loading tools under tools, the description source exposed to AI/API use
+# short - use short_description first (short description, save token), use description when it is empty
+# full - use description (detailed description)
   tool_description_mode: full
 
 # ============================================
-# MCP 相关配置
+# MCP related configuration
 # ============================================
 
-# MCP 协议配置
-# MCP (Model Context Protocol) 用于工具注册和调用
+#MCP protocol configuration
+# MCP (Model Context Protocol) is used for tool registration and invocation
 mcp:
-  enabled: false # 是否启用 MCP 服务器（http模式）
-  host: 0.0.0.0  # MCP 服务器监听地址
-  port: 8081     # MCP 服务器端口
+  enabled: false # Whether to enable MCP server (http mode)
+  host: 0.0.0.0  # MCP server listening address
+  port: 8081     # MCP server port
 
-# 外部 MCP 配置
+# External MCP configuration
 external_mcp:
   servers: {}
 
 # ============================================
-# 知识库相关配置
+# Knowledge base related configuration
 # ============================================
 
 knowledge:
-  enabled: false                    # 是否启用知识检索功能
-  base_path: knowledge_base         # 知识库目录路径（相对于配置文件所在目录）
+  enabled: false                    # Whether to enable knowledge retrieval function
+  base_path: knowledge_base         # Knowledge base directory path (relative to the directory where the configuration file is located)
   embedding:
-    provider: openai                # 嵌入模型提供商（目前仅支持openai）
-    model: text-embedding-v4        # 嵌入模型名称
-    base_url: https://api.deepseek.com/v1 # 留空则使用OpenAI配置的base_url
-    api_key: sk-xxxxxx              # 留空则使用OpenAI配置的api_key
+    provider: openai                # Embed model provider (currently only openai is supported)
+    model: text-embedding-v4        # Embed model name
+    base_url: https://api.deepseek.com/v1 # If left blank, the base_url configured by OpenAI will be used.
+    api_key: sk-xxxxxx              # If left blank, the api_key configured by OpenAI will be used.
   retrieval:
-    top_k: 5                        # 检索返回的Top-K结果数量
-    similarity_threshold: 0.7       # 相似度阈值（0-1），低于此值的结果将被过滤
-    hybrid_weight: 0.7              # 混合检索权重（0-1），向量检索的权重，1.0表示纯向量检索，0.0表示纯关键词检索
+    top_k: 5                        # Number of Top-K results returned by retrieval
+    similarity_threshold: 0.7       # Similarity threshold (0-1), results below this value will be filtered
+    hybrid_weight: 0.7              # Mixed retrieval weight (0-1), the weight of vector retrieval, 1.0 represents pure vector retrieval, 0.0 represents pure keyword retrieval
 
 # ============================================
-# 机器人配置（企业微信、钉钉、飞书）
+# Robot configuration (Business WeChat, DingTalk, Feishu)
 # ============================================
-# 用于在手机端通过企业微信/钉钉/飞书与 CyberStrikeAI 对话，无需部署在服务器上也可使用
-# 在系统设置 -> 机器人设置 中可配置
+# Used to communicate with CyberStrikeAI on the mobile phone through Enterprise WeChat/DingTalk/Feishu. It can be used without deploying it on the server.
+# Configurable in System Settings -> Robot Settings
 robots:
-  wecom: # 企业微信
+  wecom: # Enterprise WeChat
     enabled: false
     token: ""
     encoding_aes_key: ""
     corp_id: ""
     secret: ""
     agent_id: 0
-  dingtalk: # 钉钉
+  dingtalk: # DingTalk
     enabled: false
     client_id: 
     client_secret: 
-  lark: # 飞书
+  lark: # Feishu
     enabled: false
     app_id: ""
     app_secret: ""
     verify_token: ""
 
 # ============================================
-# Skills 相关配置
+# Skills related configuration
 # ============================================
 
-# 系统会从该目录加载所有skills，每个skill应是一个目录，包含SKILL.md文件
-# 例如：skills/sql-injection-testing/SKILL.md
-skills_dir: skills # Skills配置文件目录（相对于配置文件所在目录）
+# The system will load all skills from this directory. Each skill should be a directory containing the SKILL.md file.
+# For example: skills/sql-injection-testing/SKILL.md
+skills_dir: skills # Skills configuration file directory (relative to the directory where the configuration file is located)
 
 # ============================================
-# 角色相关配置
+# Role related configuration
 # ============================================
 
-# 系统会从该目录加载所有 .yaml 格式的角色配置文件
-# 每个角色应创建独立的配置文件，例如：roles/CTF.yaml, roles/默认.yaml 等
-roles_dir: roles # 角色配置文件目录（相对于配置文件所在目录）
+# The system will load all role configuration files in .yaml format from this directory
+# Each role should create an independent configuration file, such as: roles/CTF.yaml, roles/default.yaml, etc.
+roles_dir: roles # Role configuration file directory (relative to the directory where the configuration file is located)

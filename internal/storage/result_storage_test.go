@@ -11,23 +11,23 @@ import (
 	"go.uber.org/zap"
 )
 
-// setupTestStorage 创建测试用的存储实例
+// SetupTestStorage creates a storage instance for testing
 func setupTestStorage(t *testing.T) (*FileResultStorage, string) {
 	tmpDir := filepath.Join(os.TempDir(), "test_result_storage_"+time.Now().Format("20060102_150405"))
 	logger := zap.NewNop()
 
 	storage, err := NewFileResultStorage(tmpDir, logger)
 	if err != nil {
-		t.Fatalf("创建测试存储失败: %v", err)
+		t.Fatalf("Failed to create test store: %v", err)
 	}
 
 	return storage, tmpDir
 }
 
-// cleanupTestStorage 清理测试数据
+// CleanupTestStorage cleans test data
 func cleanupTestStorage(t *testing.T, tmpDir string) {
 	if err := os.RemoveAll(tmpDir); err != nil {
-		t.Logf("清理测试目录失败: %v", err)
+		t.Logf("Failed to clean test directory: %v", err)
 	}
 }
 
@@ -38,16 +38,16 @@ func TestNewFileResultStorage(t *testing.T) {
 	logger := zap.NewNop()
 	storage, err := NewFileResultStorage(tmpDir, logger)
 	if err != nil {
-		t.Fatalf("创建存储失败: %v", err)
+		t.Fatalf("Failed to create storage: %v", err)
 	}
 
 	if storage == nil {
-		t.Fatal("存储实例为nil")
+		t.Fatal("Store instance is nil")
 	}
 
-	// 验证目录已创建
+	// Verify directory has been created
 	if _, err := os.Stat(tmpDir); os.IsNotExist(err) {
-		t.Fatal("存储目录未创建")
+		t.Fatal("Storage directory not created")
 	}
 }
 
@@ -61,19 +61,19 @@ func TestFileResultStorage_SaveResult(t *testing.T) {
 
 	err := storage.SaveResult(executionID, toolName, result)
 	if err != nil {
-		t.Fatalf("保存结果失败: %v", err)
+		t.Fatalf("Failed to save results: %v", err)
 	}
 
-	// 验证结果文件存在
+	// Verify that the result file exists
 	resultPath := filepath.Join(tmpDir, executionID+".txt")
 	if _, err := os.Stat(resultPath); os.IsNotExist(err) {
-		t.Fatal("结果文件未创建")
+		t.Fatal("Result file not created")
 	}
 
-	// 验证元数据文件存在
+	// Verify metadata file exists
 	metadataPath := filepath.Join(tmpDir, executionID+".meta.json")
 	if _, err := os.Stat(metadataPath); os.IsNotExist(err) {
-		t.Fatal("元数据文件未创建")
+		t.Fatal("Metadata file not created")
 	}
 }
 
@@ -85,26 +85,26 @@ func TestFileResultStorage_GetResult(t *testing.T) {
 	toolName := "test_tool"
 	expectedResult := "Test result content\nLine 2\nLine 3"
 
-	// 先保存结果
+	// Save the results first
 	err := storage.SaveResult(executionID, toolName, expectedResult)
 	if err != nil {
-		t.Fatalf("保存结果失败: %v", err)
+		t.Fatalf("Failed to save results: %v", err)
 	}
 
-	// 获取结果
+	// Get results
 	result, err := storage.GetResult(executionID)
 	if err != nil {
-		t.Fatalf("获取结果失败: %v", err)
+		t.Fatalf("Failed to get results: %v", err)
 	}
 
 	if result != expectedResult {
-		t.Errorf("结果不匹配。期望: %q, 实际: %q", expectedResult, result)
+		t.Errorf("The result does not match. Expected: %q, Actual: %q", expectedResult, result)
 	}
 
-	// 测试不存在的执行ID
+	// Testing a non-existent execution ID
 	_, err = storage.GetResult("nonexistent_id")
 	if err == nil {
-		t.Fatal("应该返回错误")
+		t.Fatal("Should return an error")
 	}
 }
 
@@ -116,39 +116,39 @@ func TestFileResultStorage_GetResultMetadata(t *testing.T) {
 	toolName := "test_tool"
 	result := "Line 1\nLine 2\nLine 3"
 
-	// 保存结果
+	// Save results
 	err := storage.SaveResult(executionID, toolName, result)
 	if err != nil {
-		t.Fatalf("保存结果失败: %v", err)
+		t.Fatalf("Failed to save results: %v", err)
 	}
 
-	// 获取元数据
+	// Get metadata
 	metadata, err := storage.GetResultMetadata(executionID)
 	if err != nil {
-		t.Fatalf("获取元数据失败: %v", err)
+		t.Fatalf("Failed to get metadata: %v", err)
 	}
 
 	if metadata.ExecutionID != executionID {
-		t.Errorf("执行ID不匹配。期望: %s, 实际: %s", executionID, metadata.ExecutionID)
+		t.Errorf("Execution IDs do not match. Expected: %s, Actual: %s", executionID, metadata.ExecutionID)
 	}
 
 	if metadata.ToolName != toolName {
-		t.Errorf("工具名称不匹配。期望: %s, 实际: %s", toolName, metadata.ToolName)
+		t.Errorf("Tool names do not match. Expected: %s, Actual: %s", toolName, metadata.ToolName)
 	}
 
 	if metadata.TotalSize != len(result) {
-		t.Errorf("总大小不匹配。期望: %d, 实际: %d", len(result), metadata.TotalSize)
+		t.Errorf("Total size does not match. Expected: %d, Actual: %d", len(result), metadata.TotalSize)
 	}
 
 	expectedLines := len(strings.Split(result, "\n"))
 	if metadata.TotalLines != expectedLines {
-		t.Errorf("总行数不匹配。期望: %d, 实际: %d", expectedLines, metadata.TotalLines)
+		t.Errorf("The total number of rows does not match. Expected: %d, Actual: %d", expectedLines, metadata.TotalLines)
 	}
 
-	// 验证创建时间在合理范围内
+	// Verify that the creation time is within a reasonable range
 	now := time.Now()
 	if metadata.CreatedAt.After(now) || metadata.CreatedAt.Before(now.Add(-time.Second)) {
-		t.Errorf("创建时间不在合理范围内: %v", metadata.CreatedAt)
+		t.Errorf("Creation time is not within reasonable range: %v", metadata.CreatedAt)
 	}
 }
 
@@ -158,87 +158,87 @@ func TestFileResultStorage_GetResultPage(t *testing.T) {
 
 	executionID := "test_exec_004"
 	toolName := "test_tool"
-	// 创建包含10行的结果
+	// Create a result containing 10 rows
 	lines := make([]string, 10)
 	for i := 0; i < 10; i++ {
 		lines[i] = fmt.Sprintf("Line %d", i+1)
 	}
 	result := strings.Join(lines, "\n")
 
-	// 保存结果
+	// Save results
 	err := storage.SaveResult(executionID, toolName, result)
 	if err != nil {
-		t.Fatalf("保存结果失败: %v", err)
+		t.Fatalf("Failed to save results: %v", err)
 	}
 
-	// 测试第一页（每页3行）
+	// Test the first page (3 lines per page)
 	page, err := storage.GetResultPage(executionID, 1, 3)
 	if err != nil {
-		t.Fatalf("获取第一页失败: %v", err)
+		t.Fatalf("Failed to get first page: %v", err)
 	}
 
 	if page.Page != 1 {
-		t.Errorf("页码不匹配。期望: 1, 实际: %d", page.Page)
+		t.Errorf("Page numbers don't match. Expected: 1, Actual: %d", page.Page)
 	}
 
 	if page.Limit != 3 {
-		t.Errorf("每页行数不匹配。期望: 3, 实际: %d", page.Limit)
+		t.Errorf("The number of rows per page does not match. Expected: 3, Actual: %d", page.Limit)
 	}
 
 	if page.TotalLines != 10 {
-		t.Errorf("总行数不匹配。期望: 10, 实际: %d", page.TotalLines)
+		t.Errorf("The total number of rows does not match. Expected: 10, Actual: %d", page.TotalLines)
 	}
 
 	if page.TotalPages != 4 {
-		t.Errorf("总页数不匹配。期望: 4, 实际: %d", page.TotalPages)
+		t.Errorf("The total number of pages does not match. Expected: 4, Actual: %d", page.TotalPages)
 	}
 
 	if len(page.Lines) != 3 {
-		t.Errorf("第一页行数不匹配。期望: 3, 实际: %d", len(page.Lines))
+		t.Errorf("The number of rows on the first page does not match. Expected: 3, Actual: %d", len(page.Lines))
 	}
 
 	if page.Lines[0] != "Line 1" {
-		t.Errorf("第一行内容不匹配。期望: Line 1, 实际: %s", page.Lines[0])
+		t.Errorf("The contents of the first line do not match. Expected: Line 1, Actual: %s", page.Lines[0])
 	}
 
-	// 测试第二页
+	// Test second page
 	page2, err := storage.GetResultPage(executionID, 2, 3)
 	if err != nil {
-		t.Fatalf("获取第二页失败: %v", err)
+		t.Fatalf("Failed to get second page: %v", err)
 	}
 
 	if len(page2.Lines) != 3 {
-		t.Errorf("第二页行数不匹配。期望: 3, 实际: %d", len(page2.Lines))
+		t.Errorf("The number of rows on the second page does not match. Expected: 3, Actual: %d", len(page2.Lines))
 	}
 
 	if page2.Lines[0] != "Line 4" {
-		t.Errorf("第二页第一行内容不匹配。期望: Line 4, 实际: %s", page2.Lines[0])
+		t.Errorf("The content of the first line of the second page does not match. Expected: Line 4, Actual: %s", page2.Lines[0])
 	}
 
-	// 测试最后一页（可能不满一页）
+	// Test the last page (may be less than one page)
 	page4, err := storage.GetResultPage(executionID, 4, 3)
 	if err != nil {
-		t.Fatalf("获取第四页失败: %v", err)
+		t.Fatalf("Failed to get the fourth page: %v", err)
 	}
 
 	if len(page4.Lines) != 1 {
-		t.Errorf("第四页行数不匹配。期望: 1, 实际: %d", len(page4.Lines))
+		t.Errorf("The number of rows on the fourth page does not match. Expected: 1, Actual: %d", len(page4.Lines))
 	}
 
-	// 测试超出范围的页码（应该返回最后一页）
+	// Test for out-of-range page numbers (should return the last page)
 	page5, err := storage.GetResultPage(executionID, 5, 3)
 	if err != nil {
-		t.Fatalf("获取第五页失败: %v", err)
+		t.Fatalf("Failed to get the fifth page: %v", err)
 	}
 
-	// 超出范围的页码会被修正为最后一页，所以应该返回最后一页的内容
+	// Page numbers outside the range will be corrected to the last page, so the content of the last page should be returned
 	if page5.Page != 4 {
-		t.Errorf("超出范围的页码应该被修正为最后一页。期望: 4, 实际: %d", page5.Page)
+		t.Errorf("Out-of-range page numbers should be corrected to the last page. Expected: 4, Actual: %d", page5.Page)
 	}
 
-	// 最后一页应该只有1行
+	// The last page should only have 1 row
 	if len(page5.Lines) != 1 {
-		t.Errorf("最后一页应该只有1行。实际: %d行", len(page5.Lines))
+		t.Errorf("The last page should only have 1 row. Actual: %d rows", len(page5.Lines))
 	}
 }
 
@@ -250,47 +250,47 @@ func TestFileResultStorage_SearchResult(t *testing.T) {
 	toolName := "test_tool"
 	result := "Line 1: error occurred\nLine 2: success\nLine 3: error again\nLine 4: ok"
 
-	// 保存结果
+	// Save results
 	err := storage.SaveResult(executionID, toolName, result)
 	if err != nil {
-		t.Fatalf("保存结果失败: %v", err)
+		t.Fatalf("Failed to save results: %v", err)
 	}
 
-	// 搜索包含"error"的行（简单字符串匹配）
+	// Search for lines containing "error" (simple string matching)
 	matchedLines, err := storage.SearchResult(executionID, "error", false)
 	if err != nil {
-		t.Fatalf("搜索失败: %v", err)
+		t.Fatalf("Search failed: %v", err)
 	}
 
 	if len(matchedLines) != 2 {
-		t.Errorf("搜索结果数量不匹配。期望: 2, 实际: %d", len(matchedLines))
+		t.Errorf("The number of search results does not match. Expected: 2, Actual: %d", len(matchedLines))
 	}
 
-	// 验证搜索结果内容
+	// Verify search result content
 	for i, line := range matchedLines {
 		if !strings.Contains(line, "error") {
-			t.Errorf("搜索结果第%d行不包含关键词: %s", i+1, line)
+			t.Errorf("The search result row %d does not contain the keyword: %s", i+1, line)
 		}
 	}
 
-	// 测试搜索不存在的关键词
+	// Test search for non-existent keywords
 	noMatch, err := storage.SearchResult(executionID, "nonexistent", false)
 	if err != nil {
-		t.Fatalf("搜索失败: %v", err)
+		t.Fatalf("Search failed: %v", err)
 	}
 
 	if len(noMatch) != 0 {
-		t.Errorf("搜索不存在的关键词应该返回空结果。实际: %d行", len(noMatch))
+		t.Errorf("Searching for keywords that do not exist should return empty results. Actual: %d rows", len(noMatch))
 	}
 
-	// 测试正则表达式搜索
+	// Test regular expression search
 	regexMatched, err := storage.SearchResult(executionID, "error.*again", true)
 	if err != nil {
-		t.Fatalf("正则搜索失败: %v", err)
+		t.Fatalf("Regular search failed: %v", err)
 	}
 
 	if len(regexMatched) != 1 {
-		t.Errorf("正则搜索结果数量不匹配。期望: 1, 实际: %d", len(regexMatched))
+		t.Errorf("The number of regular search results does not match. Expected: 1, Actual: %d", len(regexMatched))
 	}
 }
 
@@ -302,26 +302,26 @@ func TestFileResultStorage_FilterResult(t *testing.T) {
 	toolName := "test_tool"
 	result := "Line 1: warning message\nLine 2: info message\nLine 3: warning again\nLine 4: debug message"
 
-	// 保存结果
+	// Save results
 	err := storage.SaveResult(executionID, toolName, result)
 	if err != nil {
-		t.Fatalf("保存结果失败: %v", err)
+		t.Fatalf("Failed to save results: %v", err)
 	}
 
-	// 过滤包含"warning"的行（简单字符串匹配）
+	// Filter lines containing "warning" (simple string matching)
 	filteredLines, err := storage.FilterResult(executionID, "warning", false)
 	if err != nil {
-		t.Fatalf("过滤失败: %v", err)
+		t.Fatalf("Filtering failed: %v", err)
 	}
 
 	if len(filteredLines) != 2 {
-		t.Errorf("过滤结果数量不匹配。期望: 2, 实际: %d", len(filteredLines))
+		t.Errorf("The number of filter results does not match. Expected: 2, Actual: %d", len(filteredLines))
 	}
 
-	// 验证过滤结果内容
+	// Verify filter result content
 	for i, line := range filteredLines {
 		if !strings.Contains(line, "warning") {
-			t.Errorf("过滤结果第%d行不包含关键词: %s", i+1, line)
+			t.Errorf("The %d row of filtered results does not contain the keyword: %s", i+1, line)
 		}
 	}
 }
@@ -334,43 +334,43 @@ func TestFileResultStorage_DeleteResult(t *testing.T) {
 	toolName := "test_tool"
 	result := "Test result"
 
-	// 保存结果
+	// Save results
 	err := storage.SaveResult(executionID, toolName, result)
 	if err != nil {
-		t.Fatalf("保存结果失败: %v", err)
+		t.Fatalf("Failed to save results: %v", err)
 	}
 
-	// 验证文件存在
+	// Verify file exists
 	resultPath := filepath.Join(tmpDir, executionID+".txt")
 	metadataPath := filepath.Join(tmpDir, executionID+".meta.json")
 
 	if _, err := os.Stat(resultPath); os.IsNotExist(err) {
-		t.Fatal("结果文件不存在")
+		t.Fatal("Result file does not exist")
 	}
 
 	if _, err := os.Stat(metadataPath); os.IsNotExist(err) {
-		t.Fatal("元数据文件不存在")
+		t.Fatal("Metadata file does not exist")
 	}
 
-	// 删除结果
+	// Delete results
 	err = storage.DeleteResult(executionID)
 	if err != nil {
-		t.Fatalf("删除结果失败: %v", err)
+		t.Fatalf("Failed to delete result: %v", err)
 	}
 
-	// 验证文件已删除
+	// Verification file deleted
 	if _, err := os.Stat(resultPath); !os.IsNotExist(err) {
-		t.Fatal("结果文件未被删除")
+		t.Fatal("The result file was not deleted")
 	}
 
 	if _, err := os.Stat(metadataPath); !os.IsNotExist(err) {
-		t.Fatal("元数据文件未被删除")
+		t.Fatal("Metadata files were not deleted")
 	}
 
-	// 测试删除不存在的执行ID（应该不报错）
+	// Test deletion of non-existent execution ID (no error should be reported)
 	err = storage.DeleteResult("nonexistent_id")
 	if err != nil {
-		t.Errorf("删除不存在的执行ID不应该报错: %v", err)
+		t.Errorf("Deleting a non-existent execution ID should not result in an error: %v", err)
 	}
 }
 
@@ -378,7 +378,7 @@ func TestFileResultStorage_ConcurrentAccess(t *testing.T) {
 	storage, tmpDir := setupTestStorage(t)
 	defer cleanupTestStorage(t, tmpDir)
 
-	// 并发保存多个结果
+	// Save multiple results concurrently
 	done := make(chan bool, 10)
 	for i := 0; i < 10; i++ {
 		go func(id int) {
@@ -388,20 +388,20 @@ func TestFileResultStorage_ConcurrentAccess(t *testing.T) {
 
 			err := storage.SaveResult(executionID, toolName, result)
 			if err != nil {
-				t.Errorf("并发保存失败 (ID: %s): %v", executionID, err)
+				t.Errorf("Concurrent save failed (ID: %s): %v", executionID, err)
 			}
 
-			// 并发读取
+			// Concurrent reads
 			_, err = storage.GetResult(executionID)
 			if err != nil {
-				t.Errorf("并发读取失败 (ID: %s): %v", executionID, err)
+				t.Errorf("Concurrent read failed (ID: %s): %v", executionID, err)
 			}
 
 			done <- true
 		}(i)
 	}
 
-	// 等待所有goroutine完成
+	// Wait for all goroutines to complete
 	for i := 0; i < 10; i++ {
 		<-done
 	}
@@ -414,40 +414,40 @@ func TestFileResultStorage_LargeResult(t *testing.T) {
 	executionID := "test_exec_large"
 	toolName := "test_tool"
 
-	// 创建大结果（1000行）
+	// Create large results (1000 rows)
 	lines := make([]string, 1000)
 	for i := 0; i < 1000; i++ {
 		lines[i] = fmt.Sprintf("Line %d: This is a test line with some content", i+1)
 	}
 	result := strings.Join(lines, "\n")
 
-	// 保存大结果
+	// Save big results
 	err := storage.SaveResult(executionID, toolName, result)
 	if err != nil {
-		t.Fatalf("保存大结果失败: %v", err)
+		t.Fatalf("Failed to save large result: %v", err)
 	}
 
-	// 验证元数据
+	// Verify metadata
 	metadata, err := storage.GetResultMetadata(executionID)
 	if err != nil {
-		t.Fatalf("获取元数据失败: %v", err)
+		t.Fatalf("Failed to get metadata: %v", err)
 	}
 
 	if metadata.TotalLines != 1000 {
-		t.Errorf("总行数不匹配。期望: 1000, 实际: %d", metadata.TotalLines)
+		t.Errorf("The total number of rows does not match. Expected: 1000, Actual: %d", metadata.TotalLines)
 	}
 
-	// 测试分页查询大结果
+	// Test paging query for large results
 	page, err := storage.GetResultPage(executionID, 1, 100)
 	if err != nil {
-		t.Fatalf("获取第一页失败: %v", err)
+		t.Fatalf("Failed to get first page: %v", err)
 	}
 
 	if page.TotalPages != 10 {
-		t.Errorf("总页数不匹配。期望: 10, 实际: %d", page.TotalPages)
+		t.Errorf("The total number of pages does not match. Expected: 10, Actual: %d", page.TotalPages)
 	}
 
 	if len(page.Lines) != 100 {
-		t.Errorf("第一页行数不匹配。期望: 100, 实际: %d", len(page.Lines))
+		t.Errorf("The number of rows on the first page does not match. Expected: 100, Actual: %d", len(page.Lines))
 	}
 }

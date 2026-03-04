@@ -13,7 +13,7 @@ import (
 	"cyberstrike-ai/internal/database"
 )
 
-// BatchTask 批量任务项
+// BatchTask batch task item
 type BatchTask struct {
 	ID             string     `json:"id"`
 	Message        string     `json:"message"`
@@ -25,11 +25,11 @@ type BatchTask struct {
 	Result         string     `json:"result,omitempty"`
 }
 
-// BatchTaskQueue 批量任务队列
+// BatchTaskQueue batch task queue
 type BatchTaskQueue struct {
 	ID           string       `json:"id"`
 	Title        string       `json:"title,omitempty"`
-	Role         string       `json:"role,omitempty"` // 角色名称（空字符串表示默认角色）
+	Role         string       `json:"role,omitempty"` // Role name (empty string indicates default role)
 	Tasks        []*BatchTask `json:"tasks"`
 	Status       string       `json:"status"` // pending, running, paused, completed, cancelled
 	CreatedAt    time.Time    `json:"createdAt"`
@@ -39,15 +39,15 @@ type BatchTaskQueue struct {
 	mu           sync.RWMutex
 }
 
-// BatchTaskManager 批量任务管理器
+// BatchTaskManager batch task manager
 type BatchTaskManager struct {
 	db            *database.DB
 	queues        map[string]*BatchTaskQueue
-	taskCancels   map[string]context.CancelFunc // 存储每个队列当前任务的取消函数
+	taskCancels   map[string]context.CancelFunc // Stores the cancellation function of the current task for each queue
 	mu            sync.RWMutex
 }
 
-// NewBatchTaskManager 创建批量任务管理器
+// NewBatchTaskManager creates a batch task manager
 func NewBatchTaskManager() *BatchTaskManager {
 	return &BatchTaskManager{
 		queues:      make(map[string]*BatchTaskQueue),
@@ -55,14 +55,14 @@ func NewBatchTaskManager() *BatchTaskManager {
 	}
 }
 
-// SetDB 设置数据库连接
+// SetDB sets the database connection
 func (m *BatchTaskManager) SetDB(db *database.DB) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	m.db = db
 }
 
-// CreateBatchQueue 创建批量任务队列
+// CreateBatchQueue creates a batch task queue
 func (m *BatchTaskManager) CreateBatchQueue(title, role string, tasks []string) *BatchTaskQueue {
 	m.mu.Lock()
 	defer m.mu.Unlock()
@@ -78,12 +78,12 @@ func (m *BatchTaskManager) CreateBatchQueue(title, role string, tasks []string) 
 		CurrentIndex: 0,
 	}
 
-	// 准备数据库保存的任务数据
+	// Prepare task data saved in database
 	dbTasks := make([]map[string]interface{}, 0, len(tasks))
 
 	for _, message := range tasks {
 		if message == "" {
-			continue // 跳过空行
+			continue // Skip empty lines
 		}
 		taskID := generateShortID()
 		task := &BatchTask{
@@ -98,11 +98,11 @@ func (m *BatchTaskManager) CreateBatchQueue(title, role string, tasks []string) 
 		})
 	}
 
-	// 保存到数据库
+	// Save to database
 	if m.db != nil {
 		if err := m.db.CreateBatchQueue(queueID, title, role, dbTasks); err != nil {
-			// 如果数据库保存失败，记录错误但继续（使用内存缓存）
-			// 这里可以添加日志记录
+			// If the database save fails, log an error but continue (using in-memory cache)
+			// You can add logging here
 		}
 	}
 
@@ -110,7 +110,7 @@ func (m *BatchTaskManager) CreateBatchQueue(title, role string, tasks []string) 
 	return queue
 }
 
-// GetBatchQueue 获取批量任务队列
+// GetBatchQueue Gets the batch task queue
 func (m *BatchTaskManager) GetBatchQueue(queueID string) (*BatchTaskQueue, bool) {
 	m.mu.RLock()
 	queue, exists := m.queues[queueID]
@@ -120,7 +120,7 @@ func (m *BatchTaskManager) GetBatchQueue(queueID string) (*BatchTaskQueue, bool)
 		return queue, true
 	}
 
-	// 如果内存中不存在，尝试从数据库加载
+	// If it does not exist in memory, try to load it from the database
 	if m.db != nil {
 		if queue := m.loadQueueFromDB(queueID); queue != nil {
 			m.mu.Lock()
@@ -133,7 +133,7 @@ func (m *BatchTaskManager) GetBatchQueue(queueID string) (*BatchTaskQueue, bool)
 	return nil, false
 }
 
-// loadQueueFromDB 从数据库加载单个队列
+// LoadQueueFromDB loads a single queue from the database
 func (m *BatchTaskManager) loadQueueFromDB(queueID string) *BatchTaskQueue {
 	if m.db == nil {
 		return nil
@@ -197,7 +197,7 @@ func (m *BatchTaskManager) loadQueueFromDB(queueID string) *BatchTaskQueue {
 	return queue
 }
 
-// GetAllQueues 获取所有队列
+// GetAllQueues Gets all queues
 func (m *BatchTaskManager) GetAllQueues() []*BatchTaskQueue {
 	m.mu.RLock()
 	result := make([]*BatchTaskQueue, 0, len(m.queues))
@@ -206,7 +206,7 @@ func (m *BatchTaskManager) GetAllQueues() []*BatchTaskQueue {
 	}
 	m.mu.RUnlock()
 
-	// 如果数据库可用，确保所有数据库中的队列都已加载到内存
+	// If the database is available, ensure that all queues from the database are loaded into memory
 	if m.db != nil {
 		dbQueues, err := m.db.GetAllBatchQueues()
 		if err == nil {
@@ -226,35 +226,35 @@ func (m *BatchTaskManager) GetAllQueues() []*BatchTaskQueue {
 	return result
 }
 
-// ListQueues 列出队列（支持筛选和分页）
+// ListQueues lists queues (supports filtering and paging)
 func (m *BatchTaskManager) ListQueues(limit, offset int, status, keyword string) ([]*BatchTaskQueue, int, error) {
 	var queues []*BatchTaskQueue
 	var total int
 
-	// 如果数据库可用，从数据库查询
+	// If the database is available, query from the database
 	if m.db != nil {
-		// 获取总数
+		// Get total
 		count, err := m.db.CountBatchQueues(status, keyword)
 		if err != nil {
-			return nil, 0, fmt.Errorf("统计队列总数失败: %w", err)
+			return nil, 0, fmt.Errorf("Failed to count queue total: %w", err)
 		}
 		total = count
 
-		// 获取队列列表（只获取ID）
+		// Get queue list (only get ID)
 		queueRows, err := m.db.ListBatchQueues(limit, offset, status, keyword)
 		if err != nil {
-			return nil, 0, fmt.Errorf("查询队列列表失败: %w", err)
+			return nil, 0, fmt.Errorf("Failed to query queue list: %w", err)
 		}
 
-		// 加载完整的队列信息（从内存或数据库）
+		// Load complete queue information (from memory or database)
 		m.mu.Lock()
 		for _, queueRow := range queueRows {
 			var queue *BatchTaskQueue
-			// 先从内存查找
+			// First search from memory
 			if cached, exists := m.queues[queueRow.ID]; exists {
 				queue = cached
 			} else {
-				// 从数据库加载
+				// Load from database
 				queue = m.loadQueueFromDB(queueRow.ID)
 				if queue != nil {
 					m.queues[queueRow.ID] = queue
@@ -266,7 +266,7 @@ func (m *BatchTaskManager) ListQueues(limit, offset int, status, keyword string)
 		}
 		m.mu.Unlock()
 	} else {
-		// 没有数据库，从内存中筛选和分页
+		// No database, filtering and paging from memory
 		m.mu.RLock()
 		allQueues := make([]*BatchTaskQueue, 0, len(m.queues))
 		for _, queue := range m.queues {
@@ -274,20 +274,20 @@ func (m *BatchTaskManager) ListQueues(limit, offset int, status, keyword string)
 		}
 		m.mu.RUnlock()
 
-		// 筛选
+		// Filter
 		filtered := make([]*BatchTaskQueue, 0)
 		for _, queue := range allQueues {
-			// 状态筛选
+			// Status filter
 			if status != "" && status != "all" && queue.Status != status {
 				continue
 			}
-			// 关键字搜索（搜索队列ID和标题）
+			// Keyword search (search queue ID and title)
 			if keyword != "" {
 				keywordLower := strings.ToLower(keyword)
 				queueIDLower := strings.ToLower(queue.ID)
 				queueTitleLower := strings.ToLower(queue.Title)
 				if !strings.Contains(queueIDLower, keywordLower) && !strings.Contains(queueTitleLower, keywordLower) {
-					// 也可以搜索创建时间
+					// You can also search for creation time
 					createdAtStr := queue.CreatedAt.Format("2006-01-02 15:04:05")
 					if !strings.Contains(createdAtStr, keyword) {
 						continue
@@ -297,14 +297,14 @@ func (m *BatchTaskManager) ListQueues(limit, offset int, status, keyword string)
 			filtered = append(filtered, queue)
 		}
 
-		// 按创建时间倒序排序
+		// Sort by creation time in descending order
 		sort.Slice(filtered, func(i, j int) bool {
 			return filtered[i].CreatedAt.After(filtered[j].CreatedAt)
 		})
 
 		total = len(filtered)
 
-		// 分页
+		// Pagination
 		start := offset
 		if start > len(filtered) {
 			start = len(filtered)
@@ -321,7 +321,7 @@ func (m *BatchTaskManager) ListQueues(limit, offset int, status, keyword string)
 	return queues, total, nil
 }
 
-// LoadFromDB 从数据库加载所有队列
+// LoadFromDB loads all queues from the database
 func (m *BatchTaskManager) LoadFromDB() error {
 	if m.db == nil {
 		return nil
@@ -337,12 +337,12 @@ func (m *BatchTaskManager) LoadFromDB() error {
 
 	for _, queueRow := range queueRows {
 		if _, exists := m.queues[queueRow.ID]; exists {
-			continue // 已存在，跳过
+			continue // Already exists, skip
 		}
 
 		taskRows, err := m.db.GetBatchTasks(queueRow.ID)
 		if err != nil {
-			continue // 跳过加载失败的任务
+			continue // Skip tasks that failed to load
 		}
 
 		queue := &BatchTaskQueue{
@@ -396,12 +396,12 @@ func (m *BatchTaskManager) LoadFromDB() error {
 	return nil
 }
 
-// UpdateTaskStatus 更新任务状态
+// UpdateTaskStatus updates task status
 func (m *BatchTaskManager) UpdateTaskStatus(queueID, taskID, status string, result, errorMsg string) {
 	m.UpdateTaskStatusWithConversationID(queueID, taskID, status, result, errorMsg, "")
 }
 
-// UpdateTaskStatusWithConversationID 更新任务状态（包含conversationId）
+// UpdateTaskStatusWithConversationID updates task status (including conversationId)
 func (m *BatchTaskManager) UpdateTaskStatusWithConversationID(queueID, taskID, status string, result, errorMsg, conversationID string) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
@@ -434,15 +434,15 @@ func (m *BatchTaskManager) UpdateTaskStatusWithConversationID(queueID, taskID, s
 		}
 	}
 
-	// 同步到数据库
+	// Sync to database
 	if m.db != nil {
 		if err := m.db.UpdateBatchTaskStatus(queueID, taskID, status, conversationID, result, errorMsg); err != nil {
-			// 记录错误但继续（使用内存缓存）
+			// Log error but continue (use memcache)
 		}
 	}
 }
 
-// UpdateQueueStatus 更新队列状态
+// UpdateQueueStatus updates queue status
 func (m *BatchTaskManager) UpdateQueueStatus(queueID, status string) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
@@ -461,71 +461,71 @@ func (m *BatchTaskManager) UpdateQueueStatus(queueID, status string) {
 		queue.CompletedAt = &now
 	}
 
-	// 同步到数据库
+	// Sync to database
 	if m.db != nil {
 		if err := m.db.UpdateBatchQueueStatus(queueID, status); err != nil {
-			// 记录错误但继续（使用内存缓存）
+			// Log error but continue (use memcache)
 		}
 	}
 }
 
-// UpdateTaskMessage 更新任务消息（仅限待执行状态）
+// UpdateTaskMessage Update task message (pending status only)
 func (m *BatchTaskManager) UpdateTaskMessage(queueID, taskID, message string) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
 	queue, exists := m.queues[queueID]
 	if !exists {
-		return fmt.Errorf("队列不存在")
+		return fmt.Errorf("Queue does not exist")
 	}
 
-	// 检查队列状态，只有待执行状态的队列才能编辑任务
+	// Check the queue status. Only queues in the pending execution status can edit tasks.
 	if queue.Status != "pending" {
-		return fmt.Errorf("只有待执行状态的队列才能编辑任务")
+		return fmt.Errorf("Only queues in the pending execution state can edit tasks.")
 	}
 
-	// 查找并更新任务
+	// Find and update tasks
 	for _, task := range queue.Tasks {
 		if task.ID == taskID {
-			// 只有待执行状态的任务才能编辑
+			// Only tasks in the pending execution status can be edited
 			if task.Status != "pending" {
-				return fmt.Errorf("只有待执行状态的任务才能编辑")
+				return fmt.Errorf("Only tasks in the pending execution status can be edited")
 			}
 			task.Message = message
 
-			// 同步到数据库
+			// Sync to database
 			if m.db != nil {
 				if err := m.db.UpdateBatchTaskMessage(queueID, taskID, message); err != nil {
-					return fmt.Errorf("更新任务消息失败: %w", err)
+					return fmt.Errorf("Failed to update task message: %w", err)
 				}
 			}
 			return nil
 		}
 	}
 
-	return fmt.Errorf("任务不存在")
+	return fmt.Errorf("Task does not exist")
 }
 
-// AddTaskToQueue 添加任务到队列（仅限待执行状态）
+// AddTaskToQueue adds a task to the queue (only to be executed)
 func (m *BatchTaskManager) AddTaskToQueue(queueID, message string) (*BatchTask, error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
 	queue, exists := m.queues[queueID]
 	if !exists {
-		return nil, fmt.Errorf("队列不存在")
+		return nil, fmt.Errorf("Queue does not exist")
 	}
 
-	// 检查队列状态，只有待执行状态的队列才能添加任务
+	// Check the queue status. Only queues in the pending execution status can add tasks.
 	if queue.Status != "pending" {
-		return nil, fmt.Errorf("只有待执行状态的队列才能添加任务")
+		return nil, fmt.Errorf("Only queues in the pending execution state can add tasks.")
 	}
 
 	if message == "" {
-		return nil, fmt.Errorf("任务消息不能为空")
+		return nil, fmt.Errorf("Task message cannot be empty")
 	}
 
-	// 生成任务ID
+	// Generate task ID
 	taskID := generateShortID()
 	task := &BatchTask{
 		ID:      taskID,
@@ -533,43 +533,43 @@ func (m *BatchTaskManager) AddTaskToQueue(queueID, message string) (*BatchTask, 
 		Status:  "pending",
 	}
 
-	// 添加到内存队列
+	// Add to memory queue
 	queue.Tasks = append(queue.Tasks, task)
 
-	// 同步到数据库
+	// Sync to database
 	if m.db != nil {
 		if err := m.db.AddBatchTask(queueID, taskID, message); err != nil {
-			// 如果数据库保存失败，从内存中移除
+			// If the database fails to save, remove it from memory
 			queue.Tasks = queue.Tasks[:len(queue.Tasks)-1]
-			return nil, fmt.Errorf("添加任务失败: %w", err)
+			return nil, fmt.Errorf("Failed to add task: %w", err)
 		}
 	}
 
 	return task, nil
 }
 
-// DeleteTask 删除任务（仅限待执行状态）
+// DeleteTask deletes the task (only to be executed)
 func (m *BatchTaskManager) DeleteTask(queueID, taskID string) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
 	queue, exists := m.queues[queueID]
 	if !exists {
-		return fmt.Errorf("队列不存在")
+		return fmt.Errorf("Queue does not exist")
 	}
 
-	// 检查队列状态，只有待执行状态的队列才能删除任务
+	// Check the queue status. Only queues in the pending execution status can delete tasks.
 	if queue.Status != "pending" {
-		return fmt.Errorf("只有待执行状态的队列才能删除任务")
+		return fmt.Errorf("Only queues in the pending execution state can delete tasks.")
 	}
 
-	// 查找并删除任务
+	// Find and delete tasks
 	taskIndex := -1
 	for i, task := range queue.Tasks {
 		if task.ID == taskID {
-			// 只有待执行状态的任务才能删除
+			// Only tasks in the pending execution status can be deleted
 			if task.Status != "pending" {
-				return fmt.Errorf("只有待执行状态的任务才能删除")
+				return fmt.Errorf("Only tasks in the pending execution status can be deleted")
 			}
 			taskIndex = i
 			break
@@ -577,25 +577,25 @@ func (m *BatchTaskManager) DeleteTask(queueID, taskID string) error {
 	}
 
 	if taskIndex == -1 {
-		return fmt.Errorf("任务不存在")
+		return fmt.Errorf("Task does not exist")
 	}
 
-	// 从内存队列中删除
+	// Remove from memory queue
 	queue.Tasks = append(queue.Tasks[:taskIndex], queue.Tasks[taskIndex+1:]...)
 
-	// 同步到数据库
+	// Sync to database
 	if m.db != nil {
 		if err := m.db.DeleteBatchTask(queueID, taskID); err != nil {
-			// 如果数据库删除失败，恢复内存中的任务
-			// 这里需要重新插入，但为了简化，我们只记录错误
-			return fmt.Errorf("删除任务失败: %w", err)
+			// If database deletion fails, restore in-memory tasks
+			// Reinsertion is required here, but to simplify, we just log the error
+			return fmt.Errorf("Delete task failed: %w", err)
 		}
 	}
 
 	return nil
 }
 
-// GetNextTask 获取下一个待执行的任务
+// GetNextTask Gets the next task to be executed
 func (m *BatchTaskManager) GetNextTask(queueID string) (*BatchTask, bool) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
@@ -616,7 +616,7 @@ func (m *BatchTaskManager) GetNextTask(queueID string) (*BatchTask, bool) {
 	return nil, false
 }
 
-// MoveToNextTask 移动到下一个任务
+// MoveToNextTask moves to the next task
 func (m *BatchTaskManager) MoveToNextTask(queueID string) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
@@ -628,15 +628,15 @@ func (m *BatchTaskManager) MoveToNextTask(queueID string) {
 
 	queue.CurrentIndex++
 
-	// 同步到数据库
+	// Sync to database
 	if m.db != nil {
 		if err := m.db.UpdateBatchQueueCurrentIndex(queueID, queue.CurrentIndex); err != nil {
-			// 记录错误但继续（使用内存缓存）
+			// Log error but continue (use memcache)
 		}
 	}
 }
 
-// SetTaskCancel 设置当前任务的取消函数
+// SetTaskCancel sets the cancellation function of the current task
 func (m *BatchTaskManager) SetTaskCancel(queueID string, cancel context.CancelFunc) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
@@ -647,7 +647,7 @@ func (m *BatchTaskManager) SetTaskCancel(queueID string, cancel context.CancelFu
 	}
 }
 
-// PauseQueue 暂停队列
+// PauseQueue pauses the queue
 func (m *BatchTaskManager) PauseQueue(queueID string) bool {
 	m.mu.Lock()
 
@@ -664,7 +664,7 @@ func (m *BatchTaskManager) PauseQueue(queueID string) bool {
 
 	queue.Status = "paused"
 
-	// 取消当前正在执行的任务（通过取消context）
+	// Cancel the currently executing task (by canceling context)
 	if cancel, exists := m.taskCancels[queueID]; exists {
 		cancel()
 		delete(m.taskCancels, queueID)
@@ -672,17 +672,17 @@ func (m *BatchTaskManager) PauseQueue(queueID string) bool {
 
 	m.mu.Unlock()
 
-	// 同步队列状态到数据库
+	// Synchronize queue status to database
 	if m.db != nil {
 		if err := m.db.UpdateBatchQueueStatus(queueID, "paused"); err != nil {
-			// 记录错误但继续（使用内存缓存）
+			// Log error but continue (use memcache)
 		}
 	}
 
 	return true
 }
 
-// CancelQueue 取消队列（保留此方法以保持向后兼容，但建议使用PauseQueue）
+// CancelQueue cancels the queue (this method is retained for backward compatibility, but PauseQueue is recommended)
 func (m *BatchTaskManager) CancelQueue(queueID string) bool {
 	m.mu.Lock()
 
@@ -701,19 +701,19 @@ func (m *BatchTaskManager) CancelQueue(queueID string) bool {
 	now := time.Now()
 	queue.CompletedAt = &now
 
-	// 取消所有待执行的任务
+	// Cancel all pending tasks
 	for _, task := range queue.Tasks {
 		if task.Status == "pending" {
 			task.Status = "cancelled"
 			task.CompletedAt = &now
-			// 同步到数据库
+			// Sync to database
 			if m.db != nil {
 				m.db.UpdateBatchTaskStatus(queueID, task.ID, "cancelled", "", "", "")
 			}
 		}
 	}
 
-	// 取消当前正在执行的任务
+	// Cancel the currently executing task
 	if cancel, exists := m.taskCancels[queueID]; exists {
 		cancel()
 		delete(m.taskCancels, queueID)
@@ -721,17 +721,17 @@ func (m *BatchTaskManager) CancelQueue(queueID string) bool {
 
 	m.mu.Unlock()
 
-	// 同步队列状态到数据库
+	// Synchronize queue status to database
 	if m.db != nil {
 		if err := m.db.UpdateBatchQueueStatus(queueID, "cancelled"); err != nil {
-			// 记录错误但继续（使用内存缓存）
+			// Log error but continue (use memcache)
 		}
 	}
 
 	return true
 }
 
-// DeleteQueue 删除队列
+// DeleteQueue deletes the queue
 func (m *BatchTaskManager) DeleteQueue(queueID string) bool {
 	m.mu.Lock()
 	defer m.mu.Unlock()
@@ -741,13 +741,13 @@ func (m *BatchTaskManager) DeleteQueue(queueID string) bool {
 		return false
 	}
 
-	// 清理取消函数
+	// Cleanup cancel function
 	delete(m.taskCancels, queueID)
 
-	// 从数据库删除
+	// Delete from database
 	if m.db != nil {
 		if err := m.db.DeleteBatchQueue(queueID); err != nil {
-			// 记录错误但继续（使用内存缓存）
+			// Log error but continue (use memcache)
 		}
 	}
 
@@ -755,7 +755,7 @@ func (m *BatchTaskManager) DeleteQueue(queueID string) bool {
 	return true
 }
 
-// generateShortID 生成短ID
+// GenerateShortID generates short ID
 func generateShortID() string {
 	b := make([]byte, 4)
 	rand.Read(b)
